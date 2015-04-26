@@ -285,11 +285,11 @@ function CLoader:__init()
 	
 	local Authed = true
 	DelayAction(function()		
-		if self:authCheck() then
+		if not self:authCheck() then
 			print("returning")
 			return
 		end
-		local Version = 1.043
+		local Version = 1.6
 		KalistaUpdate(Version, true, 'raw.githubusercontent.com', '/RalphLeague/BoL/master/KalistaTest.version', '/RalphLeague/BoL/master/KalistaTest.lua', SCRIPT_PATH.._ENV.FILE_NAME, function() Print('Update Complete. Reload(F9 F9)') end, function() Print(loadMsg:sub(1,#loadMsg-2)) end, function() Print(MainMenu.update and 'New Version Found, please wait...' or 'New Version found please download manually or enable AutoUpdate') end, function() Print('An Error Occured in Update.') end)
 
 
