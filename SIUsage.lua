@@ -3,10 +3,12 @@ Summoner & Item Usage by Ralphlol
 Updated 5/6/2015
 ]]--
 
+function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:</font> </b><font color=\"#FFFFFF\">" .. message) end
+
 require 'VPrediction'
 vPred = VPrediction()
 
-local version = 1
+local version = 1.01
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
@@ -19,10 +21,10 @@ function OnLoad()
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/SIUsage.version"
     ToUpdate.ScriptPath =  "/RalphLeague/BoL/master/SIUsage.lua"
     ToUpdate.SavePath = SCRIPT_PATH.._ENV.FILE_NAME
-    ToUpdate.CallbackUpdate = function(NewVersion,OldVersion) print("<font color=\"#FF794C\"><b>SxOrbWalk: </b></font> <font color=\"#FFDFBF\">Updated to v"..NewVersion..". </b></font>") end
-    ToUpdate.CallbackNoUpdate = function(OldVersion) print("<font color=\"#FF794C\"><b>SxOrbWalk: </b></font> <font color=\"#FFDFBF\">No Updates Found</b></font>") end
-    ToUpdate.CallbackNewVersion = function(NewVersion) print("<font color=\"#FF794C\"><b>SxOrbWalk: </b></font> <font color=\"#FFDFBF\">New Version found ("..NewVersion.."). Please wait until its downloaded</b></font>") end
-    ToUpdate.CallbackError = function(NewVersion) print("<font color=\"#FF794C\"><b>SxOrbWalk: </b></font> <font color=\"#FFDFBF\">Error while Downloading. Please try again.</b></font>") end
+    ToUpdate.CallbackUpdate = function(NewVersion,OldVersion) Print("Updated to v"..NewVersion) end
+    ToUpdate.CallbackNoUpdate = function(OldVersion) Print("No Updates Found") end
+    ToUpdate.CallbackNewVersion = function(NewVersion) Print("New Version found ("..NewVersion.."). Please wait until its downloaded") end
+    ToUpdate.CallbackError = function(NewVersion) Print("Error while Downloading. Please try again.") end
     SxScriptUpdate(ToUpdate.Version,ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
 
 	ItemNames				= {
@@ -41,7 +43,7 @@ function OnLoad()
 	Debug = false
 end
 
-function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:</font> </b><font color=\"#FFFFFF\">" .. message) end
+
 
 function Menu()
 	MainMenu = scriptConfig("Summoner & Item Usage", "SIUSE")
