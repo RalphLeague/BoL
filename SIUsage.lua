@@ -8,14 +8,14 @@ function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:
 require 'VPrediction'
 vPred = VPrediction()
 
-local version = 1.02
+local version = 1.03
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.Version = 1.02
+    ToUpdate.Version = 1.03
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/SIUsage.version"
@@ -333,11 +333,14 @@ function UseItems(unit, scary)
 	if not ValidTarget(unit) and unit ~= myHero then return end
 	for i, Item in pairs(Items) do
 		local Item = Items[i]
-		if GetInventoryItemIsCastable(Item.id) and GetDistanceSqr(unit) <= Item.range * Item.range then
-			if Item.id == 3143 or Item.id == 3077 or Item.id == 3074 or Item.id == 3131 or Item.id == 3142 or Item.id == 2140 then
-				CastItem(Item.id)
-			else
-				CastItem(Item.id, unit) return true
+		if Item.id ~= 3140 and Item.id ~= 3139 then
+			if GetInventoryItemIsCastable(Item.id) and GetDistanceSqr(unit) <= Item.range * Item.range then
+				if Item.id == 3143 or Item.id == 3077 or Item.id == 3074 or Item.id == 3131 or Item.id == 3142 or Item.id == 2140 then
+					CastItem(Item.id)
+				else
+					print(Item.id)
+					CastItem(Item.id, unit) return true
+				end
 			end
 		end
 	end
