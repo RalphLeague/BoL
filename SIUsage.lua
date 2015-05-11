@@ -1,6 +1,6 @@
 --[[
 Summoner & Item Usage by Ralphlol
-Updated 5/6/2015
+Updated 5/11/2015
 ]]--
 
 function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:</font> </b><font color=\"#FFFFFF\">" .. message) end
@@ -8,14 +8,14 @@ function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:
 require 'VPrediction'
 vPred = VPrediction()
 
-local version = 1.01
+local version = 1.02
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.Version = 1.01
+    ToUpdate.Version = 1.02
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/SIUsage.version"
@@ -28,22 +28,116 @@ function OnLoad()
     SxScriptUpdate(ToUpdate.Version,ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
 
 	ItemNames				= {
+		[3303]				= "ArchAngelsDummySpell",
+		[3007]				= "ArchAngelsDummySpell",
+		[3144]				= "BilgewaterCutlass",
+		[3188]				= "ItemBlackfireTorch",
+		[3153]				= "ItemSwordOfFeastAndFamine",
+		[3405]				= "TrinketSweeperLvl1",
+		[3411]				= "TrinketOrbLvl1",
+		[3166]				= "TrinketTotemLvl1",
+		[3450]				= "OdinTrinketRevive",
+		[2041]				= "ItemCrystalFlask",
+		[2054]				= "ItemKingPoroSnack",
+		[2138]				= "ElixirOfIron",
+		[2137]				= "ElixirOfRuin",
+		[2139]				= "ElixirOfSorcery",
+		[2140]				= "ElixirOfWrath",
+		[3184]				= "OdinEntropicClaymore",
+		[2050]				= "ItemMiniWard",
+		[3401]				= "HealthBomb",
+		[3363]				= "TrinketOrbLvl3",
+		[3092]				= "ItemGlacialSpikeCast",
+		[3460]				= "AscWarp",
+		[3361]				= "TrinketTotemLvl3",
+		[3362]				= "TrinketTotemLvl4",
+		[3159]				= "HextechSweeper",
+		[2051]				= "ItemHorn",
+		--[2003]			= "RegenerationPotion",
+		[3146]				= "HextechGunblade",
+		[3187]				= "HextechSweeper",
+		[3190]				= "IronStylus",
+		[2004]				= "FlaskOfCrystalWater",
 		[3139]				= "ItemMercurial",
+		[3222]				= "ItemMorellosBane",
+		[3042]				= "Muramana",
+		[3043]				= "Muramana",
+		[3180]				= "OdynsVeil",
+		[3056]				= "ItemFaithShaker",
+		[2047]				= "OracleExtractSight",
+		[3364]				= "TrinketSweeperLvl3",
+		[2052]				= "ItemPoroSnack",
 		[3140]				= "QuicksilverSash",
+		[3143]				= "RanduinsOmen",
+		[3074]				= "ItemTiamatCleave",
+		[3800]				= "ItemRighteousGlory",
+		[2045]				= "ItemGhostWard",
+		[3342]				= "TrinketOrbLvl1",
+		[3040]				= "ItemSeraphsEmbrace",
+		[3048]				= "ItemSeraphsEmbrace",
+		[2049]				= "ItemGhostWard",
+		[3345]				= "OdinTrinketRevive",
+		[2044]				= "SightWard",
+		[3341]				= "TrinketSweeperLvl1",
+		[3069]				= "shurelyascrest",
+		[3599]				= "KalistaPSpellCast",
+		[3185]				= "HextechSweeper",
+		[3077]				= "ItemTiamatCleave",
+		[2009]				= "ItemMiniRegenPotion",
+		[2010]				= "ItemMiniRegenPotion",
+		[3023]				= "ItemWraithCollar",
+		[3290]				= "ItemWraithCollar",
+		[2043]				= "VisionWard",
+		[3340]				= "TrinketTotemLvl1",
+		[3090]				= "ZhonyasHourglass",
+		[3154]				= "wrigglelantern",
+		[3142]				= "YoumusBlade",
+		[3157]				= "ZhonyasHourglass",
+		[3512]				= "ItemVoidGate",
+		[3131]				= "ItemSoTD",
+		[3137]				= "ItemDervishBlade",
+		[3352]				= "RelicSpotter",
+		[3350]				= "TrinketTotemLvl2",
+		[3085]              = "AtmasImpalerDummySpell",
 	}
-	Items = {
+	--[[Items = {
 		["QSS"]	        = { id = 3140, range = 2500 },
 		["MercScim"]	= { id = 3139, range = 2500 },
+	}]]
+	Items = {
+		["ELIXIR"]      = { id = 2140, range = 2140, target = false},
+		["QSS"]	        = { id = 3140, range = 2500, target = false},
+		["MercScim"]	= { id = 3139, range = 2500, target = false},
+		["BRK"]			= { id = 3153, range = 450, target = true},
+		["BWC"]			= { id = 3144, range = 450, target = true},
+		--["DFG"]			= { id = 3128, range = 750, target = false},
+		["HXG"]			= { id = 3146, range = 700, target = false},
+		["ODYNVEIL"]	= { id = 3180, range = 525, target = false},
+		["DVN"]			= { id = 3131, range = 200, target = false},
+		["ENT"]			= { id = 3184, range = 350, target = false},
+		["HYDRA"]		= { id = 3074, range = 350, target = false},
+		["TIAMAT"]		= { id = 3077, range = 350, target = false},
+		["RanduinsOmen"]	= { id = 3143, range = 500, target = false},
+		["YGB"]			= { id = 3142, range = 600, target = false},
 	}
 	___GetInventorySlotItem	= rawget(_G, "GetInventorySlotItem")
 	_G.GetInventorySlotItem	= GetSlotItem
 	SummonerSlot = CleanseSlot()
 	ignite = IgniteSlot()
+	heal = HealSlot()
 	Menu()
 	Debug = false
+	TargetSelector = TargetSelector(TARGET_LESS_CAST_PRIORITY, 1250, DAMAGE_MAGIC)
 end
 
-
+function GetCustomTarget()
+	TargetSelector:update()	
+	if ValidTarget(TargetSelector.target) and TargetSelector.target.type == myHero.type then
+		return TargetSelector.target
+	else
+		return nil
+	end
+end
 
 function Menu()
 	MainMenu = scriptConfig("Summoner & Item Usage", "SIUSE")
@@ -52,28 +146,56 @@ function Menu()
 			MainMenu.cc:addParam("Always", "Use Always", SCRIPT_PARAM_ONOFF, false)
 			MainMenu.cc:addParam("Exhaust", "Remove Exhaust", SCRIPT_PARAM_ONOFF, false)		
 			if SummonerSlot then
-				MainMenu.cc:addParam("Summoner", "Use Cleanse Summoner", SCRIPT_PARAM_ONOFF, false) 
+				MainMenu.cc:addParam("Summoner", "Use Cleanse Summoner", SCRIPT_PARAM_ONOFF, true) 
 			end
-		MainMenu:addSubMenu("Ignite", "ignite")
-			MainMenu.ignite:addParam("enable", "Enable", SCRIPT_PARAM_ONOFF, true)
+		if ignite then
+			MainMenu:addSubMenu("Ignite", "ignite")
+				MainMenu.ignite:addParam("enable", "Enable", SCRIPT_PARAM_ONOFF, true)
+		end
 		MainMenu:addSubMenu("Health Potions", "potion")
 			MainMenu.potion:addParam("Key", "Use While Pressed", SCRIPT_PARAM_ONKEYDOWN, false, 32)
 			MainMenu.potion:addParam("Always", "Use Always", SCRIPT_PARAM_ONOFF, false)
 			MainMenu.potion:addParam("health", "If My Health % is <", SCRIPT_PARAM_SLICE, 60, 0, 100, 0) 
-			
+		
+		MainMenu:addSubMenu("Normal Items", "nItems")		
+			MainMenu.nItems:addParam("comboItems", "Use Items", SCRIPT_PARAM_ONOFF, false)
+			MainMenu.nItems:addParam("Key", "Use While Pressed", SCRIPT_PARAM_ONKEYDOWN, false, 32)
+			MainMenu.nItems:addParam("Always", "Use Always", SCRIPT_PARAM_ONOFF, false)
+			MainMenu.nItems:addParam("ItemMe", "If My Health % is Less Than", SCRIPT_PARAM_SLICE, 90, 0, 100, 0) 
+			MainMenu.nItems:addParam("ItemTar", "If Target Health % is Less Than", SCRIPT_PARAM_SLICE, 90, 0, 100, 0)
+		
+		if heal then
+			MainMenu:addSubMenu("Summoner Heal/Barrier", "heal")
+			MainMenu.heal:addParam("enable", "Use Summoner", SCRIPT_PARAM_ONOFF, true)
+			MainMenu.heal:addParam("health", "If My Health % is Less Than", SCRIPT_PARAM_SLICE, 10, 0, 100, 0) 			
+		end		
 end
 
 function OnTick()
-	
-	--	local enemy = findClosestEnemy(myHero.pos)
-	--	if ValidTarget(enemy, 1000) then
-	--		UseItems(enemy)
-	--	end
-	--end
+	if ValidTarget(GetCustomTarget(), 750) then
+		if MainMenu.heal.enable and myHero:CanUseSpell(heal) == 0 then
+			if myHero.level > 5 and myHero.health/myHero.maxHealth < MainMenu.heal.health/100 then
+				CastSpell(heal)
+			elseif  myHero.level < 6 and myHero.health/myHero.maxHealth < (MainMenu.heal.health/100)*.75 then
+				CastSpell(heal)
+			end
+		end
+	end
+	if MainMenu.nItems.comboItems and (MainMenu.nItems.Key or MainMenu.nItems.Always) then
+		if myHero.health / myHero.maxHealth <=  MainMenu.nItems.ItemMe / 100 then
+			local unit = GetCustomTarget()
+			if ValidTarget(unit, 1000) then
+				if unit.health / unit.maxHealth <=  MainMenu.nItems.ItemTar /	100 then
+					UseItems(unit)
+				end
+			end
+		end	
+	end	
+
 	if (MainMenu.potion.Key or MainMenu.potion.Always) and not potionOn and not InFountain() and (myHero.health/myHero.maxHealth)*100 < MainMenu.potion.health then
 		UsePotion()
 	end
-	if MainMenu.ignite.enable and ignite and (myHero:CanUseSpell(ignite) == READY) then 
+	if ignite and MainMenu.ignite.enable and (myHero:CanUseSpell(ignite) == READY) then 
 		AutoIgnite()
 	end
 end
@@ -131,9 +253,14 @@ Buff Types
 31-disarm
 ]]
 function OnProcessSpell(unit, spell)
+	if spell.target and spell.target.isMe and unit.team ~= myHero.team and unit.type == myHero.type then
+		if myHero.health/myHero.maxHealth <= (MainMenu.heal.health/100)*1.5 then
+			CastSpell(heal)
+		end
+	end
 	if spell.name:lower():find("zedult") and spell.target == myHero then
 		DelayAction(function()
-			UseItems(myHero, true)
+			UseItemsCC(myHero, true)
 		end, 1.5)
 	end
 end
@@ -146,7 +273,7 @@ function OnApplyBuff(source, unit, buff)
 			if buff.name and buff.name:lower():find("caitlynyor") and CountEnemiesNearUnitReg(myHero, 700) == 0   then
 				return false
 			elseif not buff.name:lower():find("rocketgrab2") then
-				UseItems(myHero, true)
+				UseItemsCC(myHero, true)
 			end          
 		end                    
 	end  
@@ -182,7 +309,7 @@ function CountEnemiesNearUnitReg(unit, range)
 	return count
 end
 
-function UseItems(unit, scary)
+function UseItemsCC(unit, scary)
 	if lastRemove > os.clock() - 1 then return end
 	for i, Item in pairs(Items) do
 		local Item = Items[i]
@@ -202,7 +329,19 @@ function UseItems(unit, scary)
 		lastRemove = os.clock()
 	end
 end
-
+function UseItems(unit, scary)
+	if not ValidTarget(unit) and unit ~= myHero then return end
+	for i, Item in pairs(Items) do
+		local Item = Items[i]
+		if GetInventoryItemIsCastable(Item.id) and GetDistanceSqr(unit) <= Item.range * Item.range then
+			if Item.id == 3143 or Item.id == 3077 or Item.id == 3074 or Item.id == 3131 or Item.id == 3142 or Item.id == 2140 then
+				CastItem(Item.id)
+			else
+				CastItem(Item.id, unit) return true
+			end
+		end
+	end
+end
 function findClosestEnemy(obj)
     local closestEnemy = nil
     local currentEnemy = nil
@@ -226,7 +365,13 @@ function CleanseSlot()
 		return SUMMONER_2
 	end
 end
-
+function HealSlot()
+	if myHero:GetSpellData(SUMMONER_1).name:find("summonerheal")  or myHero:GetSpellData(SUMMONER_1).name:find("summonerbar") then
+		return SUMMONER_1
+	elseif myHero:GetSpellData(SUMMONER_2).name:find("summonerheal") or myHero:GetSpellData(SUMMONER_1).name:find("summonerbar") then
+		return SUMMONER_2
+	end
+end
 function IgniteSlot()
 	if myHero:GetSpellData(SUMMONER_1).name:find("summonerdot") then
 		return SUMMONER_1
