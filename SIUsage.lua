@@ -8,14 +8,14 @@ function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:
 require 'VPrediction'
 vPred = VPrediction()
 
-local version = 1.03
+local version = 1.04
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.Version = 1.03
+    ToUpdate.Version = 1.04
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/SIUsage.version"
@@ -172,12 +172,14 @@ function Menu()
 end
 
 function OnTick()
-	if ValidTarget(GetCustomTarget(), 750) then
-		if MainMenu.heal.enable and myHero:CanUseSpell(heal) == 0 then
-			if myHero.level > 5 and myHero.health/myHero.maxHealth < MainMenu.heal.health/100 then
-				CastSpell(heal)
-			elseif  myHero.level < 6 and myHero.health/myHero.maxHealth < (MainMenu.heal.health/100)*.75 then
-				CastSpell(heal)
+	if heal then
+		if ValidTarget(GetCustomTarget(), 750) then
+			if MainMenu.heal.enable and myHero:CanUseSpell(heal) == 0 then
+				if myHero.level > 5 and myHero.health/myHero.maxHealth < MainMenu.heal.health/100 then
+					CastSpell(heal)
+				elseif  myHero.level < 6 and myHero.health/myHero.maxHealth < (MainMenu.heal.health/100)*.75 then
+					CastSpell(heal)
+				end
 			end
 		end
 	end
