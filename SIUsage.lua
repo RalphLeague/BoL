@@ -8,14 +8,14 @@ function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:
 require 'VPrediction'
 vPred = VPrediction()
 
-local version = 1.04
+local version = 1.05
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.Version = 1.04
+    ToUpdate.Version = 1.05
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/SIUsage.version"
@@ -255,7 +255,7 @@ Buff Types
 31-disarm
 ]]
 function OnProcessSpell(unit, spell)
-	if spell.target and spell.target.isMe and unit.team ~= myHero.team and unit.type == myHero.type then
+	if heal and spell.target and spell.target.isMe and unit.team ~= myHero.team and unit.type == myHero.type then
 		if myHero.health/myHero.maxHealth <= (MainMenu.heal.health/100)*1.5 then
 			CastSpell(heal)
 		end
