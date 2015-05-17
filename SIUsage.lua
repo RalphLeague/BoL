@@ -8,14 +8,14 @@ function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:
 require 'VPrediction'
 vPred = VPrediction()
 
-local version = 1.05
+local version = 1.06
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.Version = 1.05
+    ToUpdate.Version = 1.06
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/SIUsage.version"
@@ -37,7 +37,7 @@ function OnLoad()
 		[3411]				= "TrinketOrbLvl1",
 		[3166]				= "TrinketTotemLvl1",
 		[3450]				= "OdinTrinketRevive",
-		[2041]				= "ItemCrystalFlask",
+		--[2041]				= "ItemCrystalFlask",
 		[2054]				= "ItemKingPoroSnack",
 		[2138]				= "ElixirOfIron",
 		[2137]				= "ElixirOfRuin",
@@ -57,7 +57,7 @@ function OnLoad()
 		[3146]				= "HextechGunblade",
 		[3187]				= "HextechSweeper",
 		[3190]				= "IronStylus",
-		[2004]				= "FlaskOfCrystalWater",
+		--[2004]				= "FlaskOfCrystalWater",
 		[3139]				= "ItemMercurial",
 		[3222]				= "ItemMorellosBane",
 		[3042]				= "Muramana",
@@ -122,6 +122,11 @@ function OnLoad()
 	}
 	___GetInventorySlotItem	= rawget(_G, "GetInventorySlotItem")
 	_G.GetInventorySlotItem	= GetSlotItem
+	if myHero:GetSpellData(4).name:find("exhaust") then
+		exhaust = { slot = 4, key = "D", range =  650, ready = false }
+	elseif myHero:GetSpellData(5).name:find("exhaust") then
+		exhaust = { slot = 5, key = "F", range =  650, ready = false }
+	end
 	SummonerSlot = CleanseSlot()
 	ignite = IgniteSlot()
 	heal = HealSlot()
@@ -141,6 +146,14 @@ end
 
 function Menu()
 	MainMenu = scriptConfig("Summoner & Item Usage", "SIUSE")
+		MainMenu:addSubMenu("Health Potions", "potion")
+			MainMenu.potion:addParam("Key", "Use While Pressed", SCRIPT_PARAM_ONKEYDOWN, false, 32)
+			MainMenu.potion:addParam("Always", "Use Always", SCRIPT_PARAM_ONOFF, false)
+			MainMenu.potion:addParam("health", "If My Health % is <", SCRIPT_PARAM_SLICE, 60, 0, 100, 0) 
+		MainMenu:addSubMenu("Mana Potions", "potionMana")
+			MainMenu.potionMana:addParam("Key", "Use While Pressed", SCRIPT_PARAM_ONKEYDOWN, false, 32)
+			MainMenu.potionMana:addParam("Always", "Use Always", SCRIPT_PARAM_ONOFF, false)
+			MainMenu.potionMana:addParam("health", "If My Mana % is <", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
 		MainMenu:addSubMenu("Remove CC", "cc")
 			MainMenu.cc:addParam("Key", "Use While Pressed", SCRIPT_PARAM_ONKEYDOWN, false, 32)
 			MainMenu.cc:addParam("Always", "Use Always", SCRIPT_PARAM_ONOFF, false)
@@ -148,30 +161,40 @@ function Menu()
 			if SummonerSlot then
 				MainMenu.cc:addParam("Summoner", "Use Cleanse Summoner", SCRIPT_PARAM_ONOFF, true) 
 			end
-		if ignite then
-			MainMenu:addSubMenu("Ignite", "ignite")
-				MainMenu.ignite:addParam("enable", "Enable", SCRIPT_PARAM_ONOFF, true)
-		end
-		MainMenu:addSubMenu("Health Potions", "potion")
-			MainMenu.potion:addParam("Key", "Use While Pressed", SCRIPT_PARAM_ONKEYDOWN, false, 32)
-			MainMenu.potion:addParam("Always", "Use Always", SCRIPT_PARAM_ONOFF, false)
-			MainMenu.potion:addParam("health", "If My Health % is <", SCRIPT_PARAM_SLICE, 60, 0, 100, 0) 
-		
+			MainMenu.cc:addParam("delay", "Removal delay (ms)", SCRIPT_PARAM_SLICE, 0, 0, 250, 0)
 		MainMenu:addSubMenu("Normal Items", "nItems")		
 			MainMenu.nItems:addParam("comboItems", "Use Items", SCRIPT_PARAM_ONOFF, false)
 			MainMenu.nItems:addParam("Key", "Use While Pressed", SCRIPT_PARAM_ONKEYDOWN, false, 32)
 			MainMenu.nItems:addParam("Always", "Use Always", SCRIPT_PARAM_ONOFF, false)
 			MainMenu.nItems:addParam("ItemMe", "If My Health % is Less Than", SCRIPT_PARAM_SLICE, 90, 0, 100, 0) 
 			MainMenu.nItems:addParam("ItemTar", "If Target Health % is Less Than", SCRIPT_PARAM_SLICE, 90, 0, 100, 0)
-		
+			
+		if ignite then
+			MainMenu:addSubMenu("Ignite", "ignite")
+				MainMenu.ignite:addParam("enable", "Enable", SCRIPT_PARAM_ONOFF, true)
+		end
+		if exhaust then	
+			MainMenu:addSubMenu("Summoner Exhaust", "exhaust")
+			MainMenu.exhaust:addParam("exh", "Exhaust Key", SCRIPT_PARAM_ONKEYDOWN, false, GetKey(exhaust.key)) 
+			TSex = TargetSelector(TARGET_PRIORITY, 600, DAMAGE_MAGIC)	
+			TSex.name = "EX"
+		end
 		if heal then
 			MainMenu:addSubMenu("Summoner Heal/Barrier", "heal")
 			MainMenu.heal:addParam("enable", "Use Summoner", SCRIPT_PARAM_ONOFF, true)
 			MainMenu.heal:addParam("health", "If My Health % is Less Than", SCRIPT_PARAM_SLICE, 10, 0, 100, 0) 			
-		end		
+		end	
 end
 
 function OnTick()
+	if exhaust and MainMenu.exhaust.exh then 
+		if myHero:CanUseSpell(exhaust.slot) == 0 then
+			TSex:update()
+			if ValidTarget(TSex.target) and TSex.target.type == myHero.type then
+				exhFunction(TSex.target) 
+			end
+		end
+	end
 	if heal then
 		if ValidTarget(GetCustomTarget(), 750) then
 			if MainMenu.heal.enable and myHero:CanUseSpell(heal) == 0 then
@@ -193,27 +216,91 @@ function OnTick()
 			end
 		end	
 	end	
-
-	if (MainMenu.potion.Key or MainMenu.potion.Always) and not potionOn and not InFountain() and (myHero.health/myHero.maxHealth)*100 < MainMenu.potion.health then
-		UsePotion()
+	if not myHero.dead then
+		if (MainMenu.potion.Key or MainMenu.potion.Always) and not potionOn and not InFountain() and (myHero.health/myHero.maxHealth)*100 < MainMenu.potion.health then
+			UsePotion()
+		elseif (MainMenu.potionMana.Key or MainMenu.potionMana.Always) and not potionOnMana and not InFountain() and (myHero.mana/myHero.maxMana)*100 < MainMenu.potionMana.health then
+			UsePotionMana()
+		end
 	end
+	
 	if ignite and MainMenu.ignite.enable and (myHero:CanUseSpell(ignite) == READY) then 
 		AutoIgnite()
 	end
 end
+function exhFunction(unit)
+	moveToCursor()
+	CastSpell(exhaust.slot, unit)
+end
+function moveToCursor()
+	local MouseMove = Vector(myHero) + (Vector(mousePos) - Vector(myHero)):normalized() * 500
+	myHero:MoveTo(MouseMove.x, MouseMove.z)	
+end
+
 function OnUpdateBuff(unit, buff, stacks)
 	if not unit or not buff then return end
-
-	if unit.isMe and buff.name:lower():find("regenerationpotion") then
-		potionOn = true
+	if unit.isMe then
+		if buff.name:lower():find("flaskofcrystalwater") then
+			potionOnMana = true
+		elseif buff.name:lower():find("regenerationpotion") or buff.name:lower():find("itemminiregenpotion") then
+			potionOn = true
+		elseif buff.name:lower():find("itemcrystalflask") then
+			potionOn = true
+			potionOnMana = true
+		end
 	end
 end
 function OnRemoveBuff(unit, buff)
 	if not unit or not buff then return end
-	
-	if unit.isMe and buff.name:lower():find("regenerationpotion") then
-		potionOn = false
+	if unit.isMe then
+		if buff.name:lower():find("flaskofcrystalwater") then
+			potionOnMana = false
+		elseif buff.name:lower():find("regenerationpotion") or buff.name:lower():find("itemminiregenpotion") then
+			potionOn = false
+		elseif buff.name:lower():find("itemcrystalflask") then
+			potionOn = false
+			potionOnMana = false
+		end
 	end
+end
+local lastPotion = 0
+function UsePotion()
+	if CountEnemiesNearUnitReg(myHero, 750) == 0 then return end
+	if os.clock() - lastPotion < 8 then return end
+	local slot = GetSlotItemFromName("itemcrystalflask")
+	if not slot then
+		slot = GetSlotItemFromName("RegenerationPotion")
+	end
+	if not slot then
+		slot = GetSlotItemFromName("itemminiregenpotion")
+	end
+	if slot then
+		CastSpell(slot)
+		lastPotion = os.clock()
+	end
+end
+local lastPotionMana = 0
+function UsePotionMana()
+	if CountEnemiesNearUnitReg(myHero, 1000) == 0 then return end
+	if os.clock() - lastPotionMana < 8 then return end
+	local slot = GetSlotItemFromName("itemcrystalflask")
+	if not slot then
+		slot = GetSlotItemFromName("flaskofcrystalwater")
+	end
+	if slot then
+		CastSpell(slot)
+		lastPotionMana = os.clock()
+	end
+end
+function GetSlotItemFromName(itemname)
+	local slot
+	for i = 6, 12 do
+		local item = myHero:GetSpellData(i).name
+		if ((#item > 0) and (item:lower() == itemname:lower())) then
+			slot = i
+		end
+	end
+	return slot
 end
 function GetSlotItem(id, unit)
 	unit = unit or myHero
@@ -318,8 +405,9 @@ function UseItemsCC(unit, scary)
 		if GetInventoryItemIsCastable(Item.id) and GetDistanceSqr(unit) <= Item.range * Item.range then
 			if Item.id == 3139 or Item.id ==  3140 then
 				if scary then
-				--if scary then
-					CastItem(Item.id)
+					DelayAction(function()
+						CastItem(Item.id)
+					end, MainMenu.cc.delay/1000)	
 					lastRemove = os.clock()
 					return true
 				end
@@ -327,7 +415,9 @@ function UseItemsCC(unit, scary)
 		end
 	end
 	if MainMenu.cc.Summoner and SummonerSlot and myHero:CanUseSpell(SummonerSlot) == 0 then
-		CastSpell(SummonerSlot)
+		DelayAction(function()
+			CastSpell(SummonerSlot)
+		end, MainMenu.cc.delay/1000)
 		lastRemove = os.clock()
 	end
 end
@@ -455,23 +545,6 @@ function isFleeingFromMe(target, range)
 	return false
 end
 
-local lastPotion = 0
-function UsePotion()
-	if CountEnemiesNearUnitReg(myHero, 700) == 0 then return end
-	if os.clock() - lastPotion < 8 then return end
-	local slot
-	for i = 6, 12 do
-		local item = myHero:GetSpellData(i).name
-		local name = "RegenerationPotion"
-		if ((#item > 0) and (item:lower() == name:lower())) then
-			slot = i
-		end
-	end
-	if slot then
-		CastSpell(slot)
-	end
-	lastPotion = os.clock()
-end
 
 class "SxScriptUpdate"
 function SxScriptUpdate:__init(LocalVersion,UseHttps, Host, VersionPath, ScriptPath, SavePath, CallbackUpdate, CallbackNoUpdate, CallbackNewVersion,CallbackError)
