@@ -8,6 +8,7 @@
 			
 	by Ralphlol  
 	
+	Version 2.18 Updated 5/21/2015
 	
 	Default Settings Highly Recommended
 	
