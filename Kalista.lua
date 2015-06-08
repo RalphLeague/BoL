@@ -311,7 +311,7 @@ SSL({94,49,182,119,181,148,3,186,177,111,36,130,254,221,202,129,206,88,40,82,166
 			- Added Twisted Treeline jungle camps
 			- Other overall improvements
 			
-		2.2
+		2.21
 			- Improved detection of dynamic E range (This will get you more kills and prevent some rare failed E resets!)
 			- Added last hit assistance under tower. Press the last hit key(default 'X')
 			- Added options for bush revealing
