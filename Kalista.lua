@@ -12,7 +12,7 @@ SSL({156,101,27,214,136,120,45,236,177,62,147,189,138,19,129,248,11,16,169,35,19
 			
 	by Ralphlol  
 	
-	Version 2.22 Updated 6/10/2015
+	Version 2.23 Updated 6/10/2015
 	
 	Default Settings Highly Recommended
 	
