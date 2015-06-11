@@ -2,14 +2,16 @@ local version = "1.00"
 local enemyHeroes = {}
 
 Callback.Bind('GameStart', function() 
-    if myHero.charName ~= "Sona" then return end
+  --  if myHero.charName ~= "Sona" then return end
 	createTables()
 	Variables()
 	Menu()
+	--Game.SetMaxZoom(20000)
 	
 	ScriptPrint("Version "..version.." Loaded")
 	Game.Chat.Send("/l")
 end)
+
 Callback.Bind('Tick', function() 
 	if Sona == nil then return end
 	
@@ -19,24 +21,24 @@ Callback.Bind('Tick', function()
 		eTarget = Sona.TS:GetTarget(650)
 	end
 	
-	--Game.Chat.Print(tostring(Target))
 	checkPressed()
 	tickChecks()
 end)
+
 Callback.Bind('Draw', function()
 	if AARange == nil then return end
-	if Target or qTarget or eTarget  then
-		Diamond(Target.pos, Graphics.ARGB(255,255,69,0))
+	if Sona.Draws.Rbox:Value() then
+		drawUlt()
 	end
-
-	 --Render.GameCircle(myHero, 500, ColorAsInt):Draw()
+	if Target then
+		Diamond(Target.pos, Graphics.ARGB(255, 0, 0, 255))
+	end
 	drawRange()
-	--drawUlt()
 end)
-function ScriptPrint(msg)
-	Game.Chat.Print("<font color=\"#0080ff\">Sona the Mute: </font><font color=\"#FFFFFF\">" .. msg)
-end
 
+function ScriptPrint(msg)
+	Game.Chat.Print("<font color=\"#0080ff\">Poke Machine Sona: </font><font color=\"#FFFFFF\">" .. msg)
+end
 function DebugPrint(msg)
 	if Sona.Sett.Debug:Value() then	
 		Game.Chat.Print("<font color=\"#4c934c\">Debug: </font><font color=\"#FFFFFF\">" .. msg)
@@ -46,7 +48,7 @@ end
 function Menu()
 Sona = MenuConfig ("Sona") 
 	
-	Sona:Menu("Sett","Settings")
+	Sona:Menu("Sett","<p style='font-family: Arial, Helvetica, sans-serif; size: 15px;';>Settings!</p>")
 		Sona.Sett:Section('General', 'General Settings')
 		Sona.Sett:Boolean("Emote","Emote when target dies", true)
 		Sona.Sett:Boolean("Debug","Debug", false)
@@ -60,8 +62,8 @@ Sona = MenuConfig ("Sona")
 		Sona.Draws:Boolean("AA","Draw AA Range", true)
 		Sona.Draws:Boolean("Q","Draw Q Range", true)
 		Sona.Draws:Boolean("R","Draw R Range", false)
-	
-	Sona:TargetSelector('TS', "Target Selector", "PRIORITY", 1050, "Magic")
+		Sona.Draws:Boolean("Rbox","Draw R Box", true)
+--	Sona:TargetSelector('TS', "Target Selector", "PRIORITY", 1050, "Magic")
 	
 	Sona:Menu("Binds","Key Bindings")
 		Sona.Binds:KeyBinding("Combo","Combo", "SPACE")
@@ -72,7 +74,6 @@ Sona = MenuConfig ("Sona")
 		if exhaust then	
 			Sona.Binds:KeyBinding("exh","Exhaust", exhaust.key)
 		end
-
 	
 	--Sona.ultTS:Hide(true)
 
@@ -81,27 +82,14 @@ Sona = MenuConfig ("Sona")
 	Sona:Slider('comboMinEnemies', 'Min Combo Ult', 2, 1, 5, 1)
 	Sona:Slider('autoMinEnemies', 'Min Auto Ult', 3, 1, 5, 1)
 end
-function PopUp() -- Credits to Jorj
-   local p = Network.EnetPacket(0x55)
-        p:Encode4(myHero.networkID)
-        p:EncodeStrP("Ult Info", 127)
-        p:EncodeStrP("Panic Ult Key will ult the highest priority target in range. Great for flash ulting or getting an assassin that popped out.", 255) -- 127
-        p:Encode1(4)
-        p:Encode1(0)
-        p:Encode2(0)
-        p:Encode1(0)
-        p:Hide()
-        p:Recv()
+
+function PopUp()
+	ScriptPrint("Panic Ult Key will ult the highest priority target in range. Great for flash ulting or getting an assassin that pops out.")
 end
-function Network.EnetPacket:EncodeStrP(text, len)
-        self:EncodeStr(text)
-        for i = #text, (len or #text) - 1 do
-                self:Encode1(0)
-        end
-end
+
 function Variables()
 	
-	SpellQ = { range = 850, delay = 0.02, speed = 1500, width =  nil, ready = false, pos = nil, dmg = 0 }
+	SpellQ = { range = 845, delay = 0.02, speed = 1500, width =  nil, ready = false, pos = nil, dmg = 0 }
 	SpellR = { range =  1000, delay = 0.1, speed = 2400, width = 140, ready = false, pos = nil, dmg = 0 }
 	
 	if myHero:GetSpellData(4).name:find("exhaust") then
@@ -130,7 +118,6 @@ function checkPressed()
 		Harass(qTarget)
 	elseif Sona.Binds.Harass:IsPressed() then
 		Harass(qTarget)
-		--Sona.Binds.HarassToggle:Color(Graphics.ARGB(255, 230,230,170))
 	end
 	if exhaust ~= nil then
 		if Sona.Binds.exh:IsPressed() then 		
@@ -144,25 +131,36 @@ function checkPressed()
 		Combo(Target)
 	end 
 end
-
+function drawUlt()
+	if not SpellR.ready then return false end
+	if Target and RightE and RightS and LeftS and LeftE then
+		local RightEnd1 = Geometry.Vector2(RightE.x, RightE.y)
+		local LeftEnd1 = Geometry.Vector2(LeftE.x, LeftE.y)
+		local RightStart1 = Geometry.Vector2(RightS.x, RightS.y)
+		local LeftStart1 = Geometry.Vector2(LeftS.x, LeftS.y)
+		Graphics.DrawLine(LeftStart1, RightStart1, 4, Graphics.ARGB(255, 255,255,0))
+		Graphics.DrawLine(LeftEnd1, RightEnd1, 4, Graphics.ARGB(255, 255,255,0))
+		Graphics.DrawLine(LeftStart1, LeftEnd1, 4, Graphics.ARGB(255, 255,255,0))
+		Graphics.DrawLine(RightStart1, RightEnd1, 4, Graphics.ARGB(255, 255,255,0))
+	end
+end
 function drawRange()
 	if not myHero.dead then
 		if Sona.Draws.AA:Value() then	
 			Graphics.DrawCircle(myHero.pos.x, myHero.pos.y, myHero.pos.z, AARange, Graphics.ARGB(80, 32,178,100))
 		end 
 		if Sona.Draws.Q:Value() and SpellQ.ready then
-		Core.OutputDebugString("8.51")
 			Graphics.DrawCircle(myHero.pos.x, myHero.pos.y, myHero.pos.z, SpellQ.range, Graphics.ARGB(255,0,128,255))
 		end 
-
 		if Sona.Draws.R:Value() and SpellR.ready  then
 			Graphics.DrawCircle(myHero.pos.x, myHero.pos.y, myHero.pos.z, SpellR.range, Graphics.ARGB(255, 230,230,170))
 		end
 	end
+	Core.OutputDebugString("8.51")
 end
 function exhFunction(unit)
 	myHero:Move(mousePos.x, mousePos.z)
-	if Allclass.ValidTarget(unit) and exhaust.ready then
+	if ValidTarget(unit) and exhaust.ready then
 		DebugPrint(tostring(exhaust.slot).." Trying to exhaust "..tostring(unit.charName))
 		myHero:CastSpell(exhaust.slot, unit)
 	end
@@ -179,9 +177,8 @@ function emot(unit)
 	end
 end
 function Combo(unit) --sbtw
-	Allclass.Orbwalk(unit)
+	--Allclass.Orbwalk(unit)
 	if unit ~= nil then
-		
 		CastR(unit, Sona.comboMinEnemies:Value())		
 		CastQ(qTarget)
 
@@ -198,7 +195,7 @@ function Combo(unit) --sbtw
 end
 
 function Harass(unit)
-	Allclass.Orbwalk(unit)
+	--Allclass.Orbwalk(unit)
 	if (myHero.mana/myHero.maxMana)*100  < Sona.Sett.HarassMana:Value() then
 		return false
 	end
@@ -215,45 +212,45 @@ function createTables()
 end
 
 function CastQ(unit)
-	if not Allclass.ValidTarget(unit) or not SpellQ.ready or myHero.pos:DistanceTo(unit.pos) >= SpellQ.range then
+	if not ValidTarget(unit) or not SpellQ.ready or myHero.pos:DistanceTo(unit.pos) >= SpellQ.range - 3 then
 		return false
 	end	
 	myHero:CastSpell(0)	
 end	
 
 function CastR(unit, count)
-	if not Allclass.ValidTarget(unit) or not SpellR.ready or myHero.pos:DistanceTo(unit.pos) >= SpellR.range + 100 then
+	if not ValidTarget(unit) or not SpellR.ready or myHero.pos:DistanceTo(unit.pos) >= SpellR.range + 100 then
 		return false
 	end	
-	local pos = pPrediction(unit, SpellR.speed, SpellR.delay)
+	local pos = prediction(unit, SpellR.delay, SpellR.speed)
 	if CountEnemiesInUlt(myHero.pos, pos) >= count then
 		myHero:CastSpell(3, pos.x, pos.z)
+		RightE = nil 
+		RightS = nil
+		LeftS = nil
+		LeftE = nil 
+		
 	end
 end	
 
-function pPrediction(unit, speed, delay) --PewPewPew Prediction
- if unit == nil then return end
- local pathPot = (unit.ms*(myHero.pos:DistanceTo(unit.pos)/speed))+ delay
- local pathSum = 0
- local pathHit = nil
- local pathPoints = unit.path
- for i=1, pathPoints.count do
-  local pathEnd = pathPoints:Path(i)
-  if type(pathEnd) == "Vector3" then
-   if type(pathPoints:Path(i-1)) == "Vector3" then
-    local iPathDist = (pathPoints:Path(i-1):DistanceTo(pathEnd))
-    pathSum = pathSum + iPathDist
-    if pathSum > pathPot and pathHit == nil then
-     pathHit = pathPoints:Path(i)
-     local l = (pathPot-(pathSum-iPathDist))
-     local v = pathPoints:Path(i-1) + (pathPoints:Path(i)-pathPoints:Path(i-1)):Normalize()*l
-     --predDebug = v
-     return v
-    end
-   end
-  end
- end
- return unit.pos
+function prediction(unit, delay, speed)
+	assert(unit, "Prediction:Prediction -> unit can't be nil")
+	if unit.hasMovePath then  
+		local pathPot = (unit.ms*((myHero.pos:DistanceTo(unit.pos)/speed)+delay))*.99
+		for i = unit.path.curPath, unit.path.count do
+			local pStart = i == unit.path.curPath and unit.pos or unit.path:Path(i-1)
+			local pEnd = unit.path:Path(i) 
+			local iPathDist = pStart:DistanceTo(pEnd) 
+			if pathPot > iPathDist then
+				pathPot = pathPot-iPathDist
+			else 
+				local v = pStart + (pEnd - pStart):Normalize()* pathPot
+				return v, 2
+			end
+		end
+		return unit.path.endPath, 1
+	end
+	return unit.path.endPath, 2
 end
 
 function Diamond(spot, color)	
@@ -272,7 +269,7 @@ function CountEnemiesInUlt(startPos, endPos)
 	local count = 0
 	for _, enemy in ipairs(enemyHeroes) do
 		if not enemy.dead and enemy.visible then
-			local pos = pPrediction(enemy, SpellR.speed, SpellR.delay)
+			local pos = prediction(enemy, SpellR.delay, SpellR.speed)
 			if  Rectangle(startPos, endPos, pos)  then 
 				count = count + 1 
 			end
@@ -311,7 +308,7 @@ function Rectangle(startPos, endPos, unitpos)
 	
 	local myWTS = Graphics.WorldToScreen(unitpos)
 	local myPoint = Geometry.Point(myWTS.x, myWTS.y)
-	spellPoly:DrawOutline(2, Graphics.ARGB(255, 255, 255, 255))
+	--spellPoly:DrawOutline(5, Graphics.ARGB(255, 255, 255, 0))
 	if myPoint:IsInside(spellPoly) then
 		return true
 	else
@@ -327,4 +324,10 @@ function CanUseItem(id) --PewPewPew
 		end
 	end
 	return nil
+end
+
+function ValidTarget(object, distance, enemyTeam)
+	if object and object.valid and not object.dead and object.visible then
+		return true 
+	end
 end
