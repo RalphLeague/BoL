@@ -519,8 +519,9 @@ function AutoIgnite()
 					print("It's time to DDDDDDDUEL")
 				end
 			end
-			
-			if isFleeingFromMe(enemy, 575) then
+			local r = myHero.range+65
+			local trange = r < 575 and r or 575
+			if isFleeingFromMe(enemy, trange) then
 				if enemy.health < IgniteDmg + spellDamage  + 10 then		
 					if myHero.ms < enemy.ms then
 						CastSpell(ignite, enemy)	
