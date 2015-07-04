@@ -15,7 +15,7 @@ local lastRemove = 0
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.Version = 1.06
+    ToUpdate.Version = 1.07
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/SIUsage.version"
