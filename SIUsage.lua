@@ -1,6 +1,6 @@
 --[[
 Summoner & Item Usage by Ralphlol
-Updated 5/11/2015
+Updated 7/03/2015
 ]]--
 
 function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:</font> </b><font color=\"#FFFFFF\">" .. message) end
@@ -8,7 +8,7 @@ function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:
 require 'VPrediction'
 vPred = VPrediction()
 
-local version = 1.06
+local version = 1.07
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
@@ -163,7 +163,8 @@ function Menu()
 			end
 			MainMenu.cc:addParam("delay", "Removal delay (ms)", SCRIPT_PARAM_SLICE, 0, 0, 250, 0)
 		MainMenu:addSubMenu("Normal Items", "nItems")		
-			MainMenu.nItems:addParam("comboItems", "Use Items", SCRIPT_PARAM_ONOFF, false)
+			MainMenu.nItems:addParam("comboItems", "Use Items", SCRIPT_PARAM_ONOFF, true)
+			MainMenu.nItems:addParam("zhon", "Use Zhonyas/Seraphs Before Death", SCRIPT_PARAM_ONOFF, true)
 			MainMenu.nItems:addParam("Key", "Use While Pressed", SCRIPT_PARAM_ONKEYDOWN, false, 32)
 			MainMenu.nItems:addParam("Always", "Use Always", SCRIPT_PARAM_ONOFF, false)
 			MainMenu.nItems:addParam("ItemMe", "If My Health % is Less Than", SCRIPT_PARAM_SLICE, 90, 0, 100, 0) 
@@ -171,7 +172,8 @@ function Menu()
 			
 		if ignite then
 			MainMenu:addSubMenu("Ignite", "ignite")
-				MainMenu.ignite:addParam("enable", "Enable", SCRIPT_PARAM_ONOFF, true)
+				MainMenu.ignite:addParam("set", "Use Smart Ignite", SCRIPT_PARAM_LIST, 2, {"OFF", "Optimal", "Aggressive"})
+				
 		end
 		if exhaust then	
 			MainMenu:addSubMenu("Summoner Exhaust", "exhaust")
@@ -194,6 +196,9 @@ function OnTick()
 				exhFunction(TSex.target) 
 			end
 		end
+	end
+	if MainMenu.nItems.zhon then
+		Zhonya()
 	end
 	if heal then
 		if ValidTarget(GetCustomTarget(), 750) then
@@ -224,8 +229,34 @@ function OnTick()
 		end
 	end
 	
-	if ignite and MainMenu.ignite.enable and (myHero:CanUseSpell(ignite) == READY) then 
+	if ignite and MainMenu.ignite.set > 1 and (myHero:CanUseSpell(ignite) == READY) then 
 		AutoIgnite()
+	end
+end
+function Zhonya()	
+	local h = myHero.health/myHero.maxHealth
+	if myHero.level > 5 and h < .15 then
+		CastZhonya()
+	elseif  myHero.level < 6 and h < .10 then
+		CastZhonya()
+	end
+end
+function CastZhonya()
+	local item = CheckItem("zhonyashourglass")
+	if item and myHero:CanUseSpell(item) == 0 then
+		CastSpell(item) 
+		return true
+	end
+	if GetInventoryItemIsCastable(3040) then
+		CastItem(3040)
+	end
+end
+function CheckItem(ItemName)
+	for i = 6, 12 do
+		local item = myHero:GetSpellData(i).name
+		if item and item:lower() == ItemName then
+			return i
+		end
 	end
 end
 function exhFunction(unit)
@@ -342,7 +373,7 @@ Buff Types
 31-disarm
 ]]
 function OnProcessSpell(unit, spell)
-	if heal and spell.target and spell.target.isMe and unit.team ~= myHero.team and unit.type == myHero.type then
+	if heal and MainMenu.heal.enable and spell.target and spell.target.isMe and unit.team ~= myHero.team and unit.type == myHero.type then
 		if myHero.health/myHero.maxHealth <= (MainMenu.heal.health/100)*1.5 then
 			CastSpell(heal)
 		end
@@ -472,30 +503,24 @@ function IgniteSlot()
 		return SUMMONER_1
 	elseif myHero:GetSpellData(SUMMONER_2).name:find("summonerdot") then
 		return SUMMONER_2
-	else
-		return nil
 	end
 end
 function AutoIgnite()
 	local IgniteDmg = 50 + (20 * myHero.level)
+	local aggro = MainMenu.ignite.set == 3 and 0.05 or 0
 	for i, enemy in pairs(sEnemies) do
 		if ValidTarget(enemy, 600) then
 			local spellDamage = 0
-			local addOn = 4*myHero.level
-			spellDamage = (myHero:CanUseSpell(0) == 0) and spellDamage + addOn or spellDamage
-			spellDamage = (myHero:CanUseSpell(1) == 0) and spellDamage + addOn or spellDamage
-			spellDamage = (myHero:CanUseSpell(2) == 0) and spellDamage + addOn or spellDamage
-			spellDamage = (myHero:CanUseSpell(3) == 0) and spellDamage + addOn or spellDamage
 			local adDamage = myHero:CalcDamage(enemy, myHero.totalDamage)
 			spellDamage = spellDamage + adDamage
-			if myHero.health < myHero.maxHealth*0.35 and enemy.health < enemy.maxHealth*0.34 and GetDistanceSqr(enemy) < 400 * 400 then
+			if myHero.health < myHero.maxHealth*(0.35+aggro) and enemy.health < enemy.maxHealth*(0.34+aggro)  and GetDistanceSqr(enemy) < 420 * 420 then
 				CastSpell(ignite, enemy)							
 				if Debug then
 					print("It's time to DDDDDDDUEL")
 				end
 			end
 			
-			if isFleeingFromMe(enemy, 600) then
+			if isFleeingFromMe(enemy, 575) then
 				if enemy.health < IgniteDmg + spellDamage  + 10 then		
 					if myHero.ms < enemy.ms then
 						CastSpell(ignite, enemy)	
@@ -509,9 +534,8 @@ function AutoIgnite()
 					end
 				end	
 			end
-		
-			if (CountAlliesNearUnit(enemy, 700) <= 1 and GetDistanceSqr(enemy) > 160000 and myHero.health < myHero.maxHealth*0.3) then 
-				if enemy.health > spellDamage and enemy.health < IgniteDmg + spellDamage  then
+			if (GetDistanceSqr(enemy) > 160000 and (myHero.health+myHero.shield) < myHero.maxHealth*0.3) then 
+				if enemy.health > spellDamage-(500*aggro) and enemy.health < IgniteDmg + spellDamage-(500*aggro)  then
 					CastSpell(ignite, enemy)							
 					if Debug then
 						print("ignite Q")
@@ -528,14 +552,7 @@ function CountAlliesNearUnit(unit, range)
 	end
 	return count
 end
-function amIFleeing(target, range)
-	local pos = vPred:GetPredictedPos(myHero, 0.26)
-	
-	if pos and GetDistanceSqr(pos, target) > range*range then
-		return true
-	end
-	return false
-end
+
 function isFleeingFromMe(target, range)
 	local pos = vPred:GetPredictedPos(target, 0.26)
 	
@@ -544,7 +561,14 @@ function isFleeingFromMe(target, range)
 	end
 	return false
 end
-
+function amIFleeing(target, range)
+	local pos = vPred:GetPredictedPos(myHero, 0.26)
+	
+	if pos and GetDistanceSqr(pos, target) > range*range then
+		return true
+	end
+	return false
+end
 
 class "SxScriptUpdate"
 function SxScriptUpdate:__init(LocalVersion,UseHttps, Host, VersionPath, ScriptPath, SavePath, CallbackUpdate, CallbackNoUpdate, CallbackNewVersion,CallbackError)
