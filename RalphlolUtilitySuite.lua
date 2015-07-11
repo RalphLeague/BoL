@@ -1,14 +1,14 @@
 --[[
 Ralphlol's Utility Suite
-Updated 7/10/2015
-Version 1.08
+Updated 7/11/2015
+Version 1.09
 ]]
 
 function Print(msg) print("<font color=\"#A51842\">Ralphlol's Utility Suite:  </font><font color=\"#FFFFFF\">"..msg) end
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.Version = 1.08
+    ToUpdate.Version = 1.09
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/RalphlolUtilitySuite.version"
@@ -97,7 +97,7 @@ function OnProcessSpell(unit, spell)
 		elseif spell.name:lower():find("deceive") then
 			local f = spell.endPos
 			if GetDistance(unit, spell.endPos) > 400 then
-				f = Vector(unit) + (Vector(spell.endPos) - Vector(unit)):normalized() * (425)
+				f = Vector(unit) + (Vector(spell.endPos) - Vector(unit)):normalized() * (400)
 			end
 			if checkWall(f) then
 				f = NearestNonWall(f.x, f.y, f.z, 400, 60)
@@ -108,7 +108,7 @@ function OnProcessSpell(unit, spell)
 		elseif unit.charName == "Vayne" and spell.name:lower():find(unit:GetSpellData(0).name:lower()) then
 			local f = spell.endPos
 			if GetDistance(unit, spell.endPos) > 300 then
-				f = Vector(unit) + (Vector(spell.endPos) - Vector(unit)):normalized() * (425)
+				f = Vector(unit) + (Vector(spell.endPos) - Vector(unit)):normalized() * (300)
 			end
 			if checkWall(f) then
 				f = NearestNonWall(f.x, f.y, f.z, 300, 60)
