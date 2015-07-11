@@ -1,14 +1,14 @@
 --[[
 Ralphlol's Utility Suite
 Updated 7/11/2015
-Version 1.09
+Version 1.091
 ]]
 
 function Print(msg) print("<font color=\"#A51842\">Ralphlol's Utility Suite:  </font><font color=\"#FFFFFF\">"..msg) end
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.Version = 1.09
+    ToUpdate.Version = 1.091
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/RalphlolUtilitySuite.version"
@@ -123,7 +123,7 @@ function OnProcessSpell(unit, spell)
 		if spell.name:lower():find("_turret_") then
 			if spell.target == myHero and unit.team ~= myHero.team then
 				towerTarget = os.clock()
-				print(spell.windUpTime)
+				--print(spell.windUpTime)
 			end
 		end
 	end
