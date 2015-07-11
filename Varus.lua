@@ -135,7 +135,7 @@ local wTargets = {}
 
 function OnLoad()
 	local ToUpdate = {}
-	ToUpdate.Version = 0.7
+	ToUpdate.Version = 0.71
 	DelayAction(function()
 		ToUpdate.UseHttps = true
 		ToUpdate.Host = "raw.githubusercontent.com"
@@ -149,7 +149,7 @@ function OnLoad()
 		SxScriptUpdate(ToUpdate.Version,ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
 	end, 0.5)
 	Print("Version "..ToUpdate.Version.." loaded.")
-	--dPredOn()
+	dPredOn()
 	hPredOn()
 	
 	Variables()
@@ -350,6 +350,7 @@ function Farm(farmTable)
 		local BestPos, Count = GetBestCircularFarmPosition(SpellE.range, SpellE.width/2, farmTable.objects)
 		if BestPos and Count > 1 and GetDistance(BestPos) < SpellE.range then
 			CastSpell(2, BestPos.x, BestPos.z)
+			SpellE.last = os.clock()
 			return
 		end
 	end
@@ -445,7 +446,7 @@ function Q2(unit, ks)
 		if ks then
 			if not vPred:CheckMinionCollision(unit, CastPosition, SpellQ.delay, SpellQ.width, GetDistance(CastPosition), SpellQ.speed, myHero, false, true) or qTime == 1.42 then
 				local damag = (1+((qTime/1.42)/2))* myHero:CalcDamage(unit, SpellQ.dmgMin()) - 35
-				if damag >= unit.health and GetDistance(unit) < qDistance-14 or qTime == 1.42 then
+				if damag >= unit.health and GetDistance(CastPosition) < qDistance-15 or qTime == 1.42 then
 					shoot = true
 				end
 			end
@@ -471,6 +472,7 @@ function CastE(unit)
 	if dashingd then
 		if canhitd and GetDistance(positiond) < SpellE.range then
 			CastSpell(2, positiond.x, positiond.z)
+			SpellE.last = os.clock()
 			if Debug then print("Casting isdashing E") end
 		end
 		return
@@ -489,7 +491,7 @@ function castBestE(unit, pos, ad, management)
 	if management then
 		local castPos = Vector(pos) + (Vector(unit.pos) - Vector(pos)):normalized() * management
 		CastSpell(2, castPos.x, castPos.z)
-		SpellQ.last = os.clock()
+		SpellE.last = os.clock()
 		if Debug then print("antigapclose management adjust") end
 		return true
 	else
@@ -497,7 +499,7 @@ function castBestE(unit, pos, ad, management)
 		if not unit.isMoving then
 			if GetDistance(myHero.pos, pos) < SpellE.range + adjust then
 				CastSpell(2, pos.x, pos.z)
-				SpellQ.last = os.clock()
+				SpellE.last = os.clock()
 				if Debug then print("not moving E") end
 				return true
 			end
@@ -505,12 +507,12 @@ function castBestE(unit, pos, ad, management)
 			local alternate = Vector(pos) + (Vector(unit.pos) - Vector(pos)):normalized() * (SpellE.width/2 - unit.boundingRadius/1.25)
 			if GetDistance(alternate, myHero.pos) < SpellE.range + adjust then
 				CastSpell(2, alternate.x, alternate.z)
-				SpellQ.last = os.clock()
+				SpellE.last = os.clock()
 				if Debug then print("casting to best spot E") end
 				return true
 			elseif GetDistance(myHero.pos, pos) < SpellE.range + adjust then
 				CastSpell(2, pos.x, pos.z)
-				SpellQ.last = os.clock()
+				SpellE.last = os.clock()
 				return true
 			end
 		end
