@@ -2,23 +2,22 @@ local version = "1.00"
 local enemyHeroes = {}
 
 Callback.Bind('GameStart', function() 
-  --  if myHero.charName ~= "Sona" then return end
+    if myHero.charName ~= "Sona" then return end
 	createTables()
 	Variables()
 	Menu()
 	--Game.SetMaxZoom(20000)
-	
+
 	ScriptPrint("Version "..version.." Loaded")
-	Game.Chat.Send("/l")
 end)
 
 Callback.Bind('Tick', function() 
 	if Sona == nil then return end
 	
-	Target = Sona.TS:GetTarget()
-	qTarget = Sona.TS:GetTarget(850)
+	Target = GetTarget(1050)
+	qTarget = GetTarget(850)
 	if exhaust then
-		eTarget = Sona.TS:GetTarget(650)
+		eTarget = GetTarget(650)
 	end
 	
 	checkPressed()
@@ -27,6 +26,7 @@ end)
 
 Callback.Bind('Draw', function()
 	if AARange == nil then return end
+	
 	if Sona.Draws.Rbox:Value() then
 		drawUlt()
 	end
@@ -47,8 +47,8 @@ end
 
 function Menu()
 Sona = MenuConfig ("Sona") 
-	
-	Sona:Menu("Sett","<p style='font-family: Arial, Helvetica, sans-serif; size: 15px;';>Settings!</p>")
+	Sona:Info("logo", "<img style=' width:300px;height:auto;' src='http://i.imgur.com/GL8EeAe.gif'>")
+	Sona:Menu("Sett","Settings!")
 		Sona.Sett:Section('General', 'General Settings')
 		Sona.Sett:Boolean("Emote","Emote when target dies", true)
 		Sona.Sett:Boolean("Debug","Debug", false)
@@ -63,24 +63,35 @@ Sona = MenuConfig ("Sona")
 		Sona.Draws:Boolean("Q","Draw Q Range", true)
 		Sona.Draws:Boolean("R","Draw R Range", false)
 		Sona.Draws:Boolean("Rbox","Draw R Box", true)
---	Sona:TargetSelector('TS', "Target Selector", "PRIORITY", 1050, "Magic")
+	--Sona:TargetSelector('TS', "Target Selector", "PRIORITY", 1050, "Magic")
 	
 	Sona:Menu("Binds","Key Bindings")
 		Sona.Binds:KeyBinding("Combo","Combo", "SPACE")
 		Sona.Binds:KeyBinding("Panic","Panic Ult", "T")
 		Sona.Binds:KeyBinding("Harass","Harass", "C")
-		Sona.Binds:KeyBinding("HarassToggle","Harass Toggle", "O")
-		Sona.Binds.HarassToggle:Toggle(true)
+		--Sona.Binds:KeyBinding("HarassToggle","Harass Toggle", "O")
+	--	Sona.Binds.HarassToggle:Toggle(true)
 		if exhaust then	
 			Sona.Binds:KeyBinding("exh","Exhaust", exhaust.key)
 		end
-	
-	--Sona.ultTS:Hide(true)
-
 	Sona:Section('Ult', 'Ultimate Settings')
 	Sona:Button('button', 'Click Here For Ult Info', PopUp) 
 	Sona:Slider('comboMinEnemies', 'Min Combo Ult', 2, 1, 5, 1)
 	Sona:Slider('autoMinEnemies', 'Min Auto Ult', 3, 1, 5, 1)
+	
+end
+	
+	--Sona.ultTS:Hide(true)
+function GetTarget(range)
+	local tH, hp = nil, 1000000
+	for i = 0, Game.HeroCount() do
+		local h = Game.Hero(i)
+		if h and not h.isMe and h.team ~= myHero.team and h.visible and not h.dead and h.health > 0 and h.pos:DistanceTo(myHero.pos) < range * 0.95 and h.health < hp then
+			tH = h
+            hp = h.health
+		end	
+	end
+	return tH
 end
 
 function PopUp()
@@ -114,21 +125,18 @@ function tickChecks()
 	end
 end
 function checkPressed()
-	if  Sona.Binds.HarassToggle:IsPressed() then
-		Harass(qTarget)
+	if Sona.Binds.Combo:IsPressed() then 		
+		Combo(Target)
 	elseif Sona.Binds.Harass:IsPressed() then
 		Harass(qTarget)
 	end
-	if exhaust ~= nil then
+	if exhaust then
 		if Sona.Binds.exh:IsPressed() then 		
 			exhFunction(eTarget)
 		end 
 	end
 	if Sona.Binds.Panic:IsPressed() then 		
 		CastR(Target, 1)
-	end 
-	if Sona.Binds.Combo:IsPressed() then 		
-		Combo(Target)
 	end 
 end
 function drawUlt()
@@ -166,6 +174,7 @@ function exhFunction(unit)
 	end
 end
 function emot(unit)
+	do return end
 	if unit ~= nil then
 		if unit.dead and Sona.Sett.Emote:Value() then
 			if unit.charName == "Annie" or unit.charName == "Fizz" or unit.charName == "Garen" or unit.charName == "Nocturne" or unit.charName == "Rammus" then
@@ -176,14 +185,14 @@ function emot(unit)
 		end
 	end
 end
-function Combo(unit)
+function Combo(unit) --sbtw
 	Walk()
 	if unit then
 		Attack(unit)
 		CastR(unit, Sona.comboMinEnemies:Value())		
 		CastQ(qTarget)
 
-		if Sona.Sett.Item:Value() then
+	--[[	if Sona.Sett.Item:Value() then
 			if CanUseItem(3092) and qTarget and not qTarget.dead and qTarget.visible then
 				if qTarget.health / qTarget.maxHealth <  Sona.Sett.ItemTar:Value() / 100 then
 					if myHero.health / myHero.maxHealth <  Sona.Sett.ItemMe:Value() / 100 then
@@ -191,18 +200,19 @@ function Combo(unit)
 					end
 				end	
 			end	
-		end
+		end]]
 	end
 end
 
 function Harass(unit)
+	--Allclass.Orbwalk(unit)
 	Walk()
 	if unit then
 		Attack(unit)
 		if (myHero.mana/myHero.maxMana)*100  < Sona.Sett.HarassMana:Value() then
 			return false
 		end
-		CastQ(qTarget)
+		CastQ(unit)
 	end
 end
 
@@ -223,10 +233,14 @@ function CastQ(unit)
 end	
 
 function CastR(unit, count)
+	count = tonumber(count)
 	if not ValidTarget(unit) or not SpellR.ready or myHero.pos:DistanceTo(unit.pos) >= SpellR.range + 100 then
 		return false
-	end	
-	local pos = prediction(unit, SpellR.delay, SpellR.speed)
+	end
+	
+	--local pos = prediction(unit, SpellR.delay, SpellR.speed)
+	local pos = unit.pos
+
 	if CountEnemiesInUlt(myHero.pos, pos) >= count then
 		myHero:CastSpell(3, pos.x, pos.z)
 		RightE = nil 
@@ -273,7 +287,8 @@ function CountEnemiesInUlt(startPos, endPos)
 	local count = 0
 	for _, enemy in ipairs(enemyHeroes) do
 		if not enemy.dead and enemy.visible then
-			local pos = prediction(enemy, SpellR.delay, SpellR.speed)
+			--local pos = prediction(enemy, SpellR.delay, SpellR.speed)
+			local pos = enemy.pos
 			if  Rectangle(startPos, endPos, pos)  then 
 				count = count + 1 
 			end
@@ -350,7 +365,7 @@ end
 function Walk()
 	if CanMove() then
 		if d(mousePos, myHero.pos) < 2500 then
-			myHero:MoveTo(mousePos.x, mousePos.z)
+			myHero:Move(mousePos.x, mousePos.z)
 		else
 			MouseMove = myHero.pos + (mousePos - myHero.pos):Normalize() * 500
 			myHero:Move(MouseMove.x, MouseMove.z)
@@ -387,4 +402,7 @@ end
 
 function GetAnimationTime()
 	return 1 / (myHero.attackSpeed * BaseAnimationTime)
+end
+function d(p1, p2)
+	return p1:DistanceTo(p2)
 end
