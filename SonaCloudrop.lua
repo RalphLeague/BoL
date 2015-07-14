@@ -176,9 +176,10 @@ function emot(unit)
 		end
 	end
 end
-function Combo(unit) --sbtw
-	--Allclass.Orbwalk(unit)
-	if unit ~= nil then
+function Combo(unit)
+	Walk()
+	if unit then
+		Attack(unit)
 		CastR(unit, Sona.comboMinEnemies:Value())		
 		CastQ(qTarget)
 
@@ -195,11 +196,14 @@ function Combo(unit) --sbtw
 end
 
 function Harass(unit)
-	--Allclass.Orbwalk(unit)
-	if (myHero.mana/myHero.maxMana)*100  < Sona.Sett.HarassMana:Value() then
-		return false
+	Walk()
+	if unit then
+		Attack(unit)
+		if (myHero.mana/myHero.maxMana)*100  < Sona.Sett.HarassMana:Value() then
+			return false
+		end
+		CastQ(qTarget)
 	end
-	CastQ(qTarget)
 end
 
 function createTables()
@@ -330,4 +334,57 @@ function ValidTarget(object, distance, enemyTeam)
 	if object and object.valid and not object.dead and object.visible then
 		return true 
 	end
+end
+
+local BaseWindUpTime = 3
+local BaseAnimationTime = 0.65
+local LastAA = 0
+local GetLatency = Game.Latency
+Callback.Bind('ProcessSpell', ProcessSpell)
+function ProcessSpell(unit, spell) 
+	if unit.isMe and spell.name:lower():find("attack")  then   --kOrbwalk
+		BaseAnimationTime = 1 / (spell.animationTime * myHero.attackSpeed)
+		BaseWindUpTime = 1 / (spell.windUpTime * myHero.attackSpeed)
+	end
+end
+function Walk()
+	if CanMove() then
+		if d(mousePos, myHero.pos) < 2500 then
+			myHero:MoveTo(mousePos.x, mousePos.z)
+		else
+			MouseMove = myHero.pos + (mousePos - myHero.pos):Normalize() * 500
+			myHero:Move(MouseMove.x, MouseMove.z)
+		end
+	end
+end
+
+function Attack(unit)
+	if ValidTarget(unit, AARange) and CanAttack() then
+		myHero:Attack(unit)
+		LastAA = os.clock() + GetWindUpTime() + (GetLatency()/1000)
+	end
+end 
+function CanMove()
+	if os.clock() > ((LastAA or 0) + GetWindUpTime()) then
+		return true
+	else
+		return false
+	end
+end
+
+function CanAttack()
+	if os.clock() > ((LastAA or 0) + GetAnimationTime() - (GetLatency()/1000)) then
+		return true
+	else
+		return false
+	end
+end
+function GetWindUpTime()
+	local k = 1 / (myHero.attackSpeed * BaseWindUpTime)
+	--print(k)
+	return k
+end
+
+function GetAnimationTime()
+	return 1 / (myHero.attackSpeed * BaseAnimationTime)
 end
