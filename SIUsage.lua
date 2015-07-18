@@ -1,6 +1,6 @@
 --[[
 Summoner & Item Usage by Ralphlol
-Updated 7/03/2015
+Updated July 18 2015
 ]]--
 
 function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:</font> </b><font color=\"#FFFFFF\">" .. message) end
@@ -8,14 +8,14 @@ function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:
 require 'VPrediction'
 vPred = VPrediction()
 
-local version = 1.07
+local version = 1.08
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.Version = 1.07
+    ToUpdate.Version = 1.08
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/SIUsage.version"
@@ -461,7 +461,6 @@ function UseItems(unit, scary)
 				if Item.id == 3143 or Item.id == 3077 or Item.id == 3074 or Item.id == 3131 or Item.id == 3142 or Item.id == 2140 then
 					CastItem(Item.id)
 				else
-					print(Item.id)
 					CastItem(Item.id, unit) return true
 				end
 			end
