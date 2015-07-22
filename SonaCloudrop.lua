@@ -58,6 +58,8 @@ Sona = MenuConfig ("Sona")
 		Sona.Sett:Slider('ItemTar', 'Use item if enemy health % % is < ', 70, 0, 100, 1)
 		Sona.Sett:Section('Harass', 'Harass Settings')
 		Sona.Sett:Slider('HarassMana', 'Do not use Q if mana % is < ', 30, 0, 100, 1)
+		Sona.Sett:Slider('WMana', 'Do not use W if mana % is < ', 20, 0, 100, 1)
+		Sona.Sett:Slider('WH', 'Heal if attacked and health <', 70, 0, 100, 1)
 	Sona:Menu("Draws","Drawings")
 		Sona.Draws:Boolean("AA","Draw AA Range", true)
 		Sona.Draws:Boolean("Q","Draw Q Range", true)
@@ -188,7 +190,7 @@ end
 function Combo(unit) --sbtw
 	Walk()
 	if unit then
-		Attack(unit)
+		Attack(GetTarget(AARange))
 		CastR(unit, Sona.comboMinEnemies:Value())		
 		CastQ(qTarget)
 
@@ -208,8 +210,8 @@ function Harass(unit)
 	--Allclass.Orbwalk(unit)
 	Walk()
 	if unit then
-		Attack(unit)
-		if (myHero.mana/myHero.maxMana)*100  < Sona.Sett.HarassMana:Value() then
+		Attack(GetTarget(AARange))
+		if (myHero.mana/myHero.maxMana)*100  < tonumber(Sona.Sett.HarassMana:Value()) then
 			return false
 		end
 		CastQ(unit)
@@ -355,13 +357,26 @@ local BaseWindUpTime = 3
 local BaseAnimationTime = 0.65
 local LastAA = 0
 local GetLatency = Game.Latency
-Callback.Bind('ProcessSpell', ProcessSpell)
-function ProcessSpell(unit, spell) 
-	if unit.isMe and spell.name:lower():find("attack")  then   --kOrbwalk
-		BaseAnimationTime = 1 / (spell.animationTime * myHero.attackSpeed)
-		BaseWindUpTime = 1 / (spell.windUpTime * myHero.attackSpeed)
+
+Callback.Bind('ProcessSpell', function(unit, spell) 
+	if spell.name:lower():find("attack")  then   --kOrbwalk
+		if unit.isMe then
+			BaseAnimationTime = 1 / (spell.animationTime * myHero.attackSpeed)
+			BaseWindUpTime = 1 / (spell.windUpTime * myHero.attackSpeed)
+		end
 	end
-end
+	if spell.target and spell.target == myHero and unit.team ~= myHero.team then
+		print("22")
+		if (myHero.mana/myHero.maxMana)*100  < tonumber(Sona.Sett.WMana:Value()) or  (myHero.health/myHero.maxHealth)*100  > tonumber(Sona.Sett.WH:Value())then
+			return false
+		end
+		if Sona.Binds.Combo:IsPressed() or Sona.Binds.Harass:IsPressed() then
+			if myHero.health/myHero.maxHealth < 0.7 and d(unit.pos, myHero.pos) < 850 then
+				myHero:CastSpell(1)
+			end
+		end
+	end
+end)
 function Walk()
 	if CanMove() then
 		if d(mousePos, myHero.pos) < 2500 then
