@@ -1,5 +1,5 @@
 if myHero.charName ~= "Sona" then return end
-local version = "1.00"
+local version = "1.01"
 local enemyHeroes = GetEnemyHeroes()
 
 function OnLoad()
@@ -102,11 +102,11 @@ function Variables()
 	SpellQ = { range = 845, delay = 0.02, speed = 1500, width =  nil, ready = false, pos = nil, dmg = 0 }
 	SpellR = { range =  1000, delay = 0.1, speed = 2400, width = 140, ready = false, pos = nil, dmg = 0 }
 	
-	if myHero:GetSpellData(4).name:find("exhaust") then
+	--[[if myHero:GetSpellData(4).name:find("exhaust") then
 		exhaust = { slot = 4, key = GetKey("D"), range =  650, ready = false }
 	elseif myHero:GetSpellData(5).name:find("exhaust") then
 		exhaust = { slot = 5, key = GetKey("F"), range =  650, ready = false }
-	end
+	end]]
 end
 
 function tickChecks()
@@ -179,7 +179,7 @@ function Combo(unit) --sbtw
 		CastQ(qTarget)
 
 		if Sona.Sett.Item then
-			local slot = CheckItem("itemglacialspikecast")
+			--local slot = CheckItem("itemglacialspikecast")
 			if slot and qTarget and not qTarget.dead and qTarget.visible then
 				if qTarget.health / qTarget.maxHealth <  Sona.Sett.ItemTar / 100 then
 					if myHero.health / myHero.maxHealth <  Sona.Sett.ItemMe / 100 then
