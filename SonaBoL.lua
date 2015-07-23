@@ -174,7 +174,7 @@ end
 function Combo(unit) --sbtw
 	Walk()
 	if unit then
-		Attack(GetTarget(AARange))
+		Attack(GetTarget(AARange+65))
 		CastR(unit, Sona.comboMinEnemies)		
 		CastQ(qTarget)
 
@@ -203,7 +203,7 @@ end
 function Harass(unit)
 	Walk()
 	if unit then
-		Attack(GetTarget(AARange))
+		Attack(GetTarget(AARange+65))
 		if (myHero.mana/myHero.maxMana)*100  < tonumber(Sona.Sett.HarassMana) then
 			return false
 		end
