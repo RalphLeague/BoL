@@ -1,14 +1,14 @@
 --[[
 Ralphlol's Utility Suite
-Updated 7/22/2015
-Version 1.10
+Updated 7/26/2015
+Version 1.11
 ]]
 
 function Print(msg) print("<font color=\"#A51842\">Ralphlol's Utility Suite:  </font><font color=\"#FFFFFF\">"..msg) end
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.Version = 1.10
+    ToUpdate.Version = 1.11
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/RalphlolUtilitySuite.version"
@@ -468,7 +468,7 @@ function jungle:__init()
 	AddDrawCallback(function() self:Draw() end)
 	if GetRegion() ~= "unk" then
 		AddNewPathCallback(function(unit, startPos, endPos, isDash ,dashSpeed,dashGravity, dashDistance) self:OnNewPath(unit, startPos, endPos, isDash, dashSpeed, dashGravity, dashDistance) end)
-		AddIssueOrderCallback(function(unit,iAction,targetPos,targetUnit) self:OnIssueOrder(unit,iAction,targetPos,targetUnit) end)
+		--AddIssueOrderCallback(function(unit,iAction,targetPos,targetUnit) self:OnIssueOrder(unit,iAction,targetPos,targetUnit) end)
 	end
 	AddTickCallback(function() self:Tick() end)
 end
@@ -500,13 +500,13 @@ function jungle:Menu()
 	return jM
 end
 
-function jungle:OnIssueOrder(unit,iAction,targetPos,targetUnit)
+--[[function jungle:OnIssueOrder(unit,iAction,targetPos,targetUnit)
 	if unit == self.EnemyJungler then
 		if targetUnit == myHero then
 			print("Jungler has targeted you")
 		end
 	end
-end
+end]]
 function jungle:OnNewPath(unit, startPos, endPos, isDash, dashSpeed ,dashGravity, dashDistance)
 	if unit == self.EnemyJungler and self.JungleGank - 10 < os.clock() then
 		if GetDistance(myHero, endPos) < 500 or (GetDistance(myHero, endPos) < 1300  and GetDistance(unit) > 1600) then
