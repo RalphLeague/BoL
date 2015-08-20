@@ -8,14 +8,14 @@ function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:
 require 'VPrediction'
 vPred = VPrediction()
 
-local version = 1.09
+local version = 1.1
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.Version = 1.09
+    ToUpdate.Version = 1.1
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/SIUsage.version"
@@ -156,7 +156,7 @@ function Menu()
 			MainMenu.potionMana:addParam("health", "If My Mana % is <", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
 		MainMenu:addSubMenu("Remove CC", "cc")
 			MainMenu.cc:addParam("Key", "Use While Pressed", SCRIPT_PARAM_ONKEYDOWN, false, 32)
-			MainMenu.cc:addParam("Always", "Use Always", SCRIPT_PARAM_ONOFF, false)
+			MainMenu.cc:addParam("Always", "Use Always", SCRIPT_PARAM_ONOFF, true)
 			MainMenu.cc:addParam("Exhaust", "Remove Exhaust", SCRIPT_PARAM_ONOFF, false)		
 			if SummonerSlot then
 				MainMenu.cc:addParam("Summoner", "Use Cleanse Summoner", SCRIPT_PARAM_ONOFF, true) 
