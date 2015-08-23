@@ -881,7 +881,7 @@ function wardBush:Menu()
 	wM = MainMenu.wardbush
 	wM:addParam("enable", "Enable",SCRIPT_PARAM_ONOFF, true)
 	wM:addParam("active","Key Activation",SCRIPT_PARAM_ONKEYDOWN, false, 32)
-	wM:addParam("always","Always On",SCRIPT_PARAM_ONOFF,false)
+	wM:addParam("always","Always On",SCRIPT_PARAM_ONOFF,true)
 	wM:addParam("maxT","Max Time to check missing Enemy",SCRIPT_PARAM_SLICE, 5, 1, 10)
 	return wM
 end
