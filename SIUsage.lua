@@ -1,6 +1,6 @@
 --[[
 Summoner & Item Usage by Ralphlol
-Updated September 6th 2015
+Updated September 6 2015
 ]]--
 
 function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:</font> </b><font color=\"#FFFFFF\">" .. message) end
@@ -8,14 +8,14 @@ function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:
 require 'VPrediction'
 vPred = VPrediction()
 
-local version = 1.11
+local version = 1.12
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.version = version
+    ToUpdate.Version = 1.12
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/SIUsage.version"
