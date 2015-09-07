@@ -1,6 +1,6 @@
 --[[
 Summoner & Item Usage by Ralphlol
-Updated July 24 2015
+Updated September 6th 2015
 ]]--
 
 function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:</font> </b><font color=\"#FFFFFF\">" .. message) end
@@ -8,14 +8,14 @@ function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:
 require 'VPrediction'
 vPred = VPrediction()
 
-local version = 1.1
+local version = 1.11
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.Version = 1.1
+    ToUpdate.version = version
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/SIUsage.version"
@@ -378,7 +378,7 @@ function OnProcessSpell(unit, spell)
 			CastSpell(heal)
 		end
 	end
-	if spell.name:lower():find("zedult") and spell.target == myHero then
+	if spell.name:lower():find("zedr") and spell.target == myHero then
 		DelayAction(function()
 			UseItemsCC(myHero, true)
 		end, 1.5)
