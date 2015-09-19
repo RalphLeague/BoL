@@ -71,8 +71,6 @@ Sona = scriptConfig("Poke Machine Sona", "SonaLOL")
 		Sona.Binds:addParam("Combo", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
 		Sona.Binds:addParam("Panic", "Panic Ult", SCRIPT_PARAM_ONKEYDOWN, false, GetKey("T"))
 		Sona.Binds:addParam("Harass", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, GetKey("C"))
-		Sona.Binds:addParam("toggleHarass", "Harass (Toggle)", SCRIPT_PARAM_ONKEYTOGGLE, false, GetKey("O"))
-		
 		if exhaust then	
 			Sona.Binds:addParam("exh", "Exhaust", SCRIPT_PARAM_ONKEYDOWN, false, exhaust.key)
 		end
@@ -104,11 +102,11 @@ function Variables()
 	SpellQ = { range = 845, delay = 0.02, speed = 1500, width =  nil, ready = false, pos = nil, dmg = 0 }
 	SpellR = { range =  1000, delay = 0.1, speed = 2400, width = 140, ready = false, pos = nil, dmg = 0 }
 	
-	if myHero:GetSpellData(4).name:find("exhaust") then
+	--[[if myHero:GetSpellData(4).name:find("exhaust") then
 		exhaust = { slot = 4, key = GetKey("D"), range =  650, ready = false }
 	elseif myHero:GetSpellData(5).name:find("exhaust") then
 		exhaust = { slot = 5, key = GetKey("F"), range =  650, ready = false }
-	end
+	end]]
 end
 
 function tickChecks()
@@ -131,7 +129,7 @@ end
 function checkPressed()
 	if Sona.Binds.Combo then 		
 		Combo(Target)
-	elseif Sona.Binds.Harass or Sona.Binds.toggleHarass then
+	elseif Sona.Binds.Harass then
 		Harass(qTarget)
 	end
 	if exhaust then
@@ -181,7 +179,7 @@ function Combo(unit) --sbtw
 		CastQ(qTarget)
 
 		if Sona.Sett.Item then
-			local slot = CheckItem("itemglacialspikecast")
+			--local slot = CheckItem("itemglacialspikecast")
 			if slot and qTarget and not qTarget.dead and qTarget.visible then
 				if qTarget.health / qTarget.maxHealth <  Sona.Sett.ItemTar / 100 then
 					if myHero.health / myHero.maxHealth <  Sona.Sett.ItemMe / 100 then
@@ -302,6 +300,15 @@ local BaseWindUpTime = 3
 local BaseAnimationTime = 0.65
 local LastAA = 0
 
+function OnAnimation(unit, action)
+	if unit.isMe then 
+		--print(action)
+		if action:lower():find("attack") or  action:lower():find("crit") then
+			LastAA = os.clock()
+		end
+	end
+end
+
 function OnProcessSpell(unit, spell) 
 	if spell.name:lower():find("attack")  then   --kOrbwalk
 		if unit.isMe then
@@ -313,7 +320,7 @@ function OnProcessSpell(unit, spell)
 		if (myHero.mana/myHero.maxMana)*100  < tonumber(Sona.Sett.WMana) or  (myHero.health/myHero.maxHealth)*100  > tonumber(Sona.Sett.WH)then
 			return false
 		end
-		if Sona.Binds.Combo or Sona.Binds.Harass or Sona.Binds.toggleHarass then
+		if Sona.Binds.Combo or Sona.Binds.Harass then
 			if myHero.health/myHero.maxHealth < 0.7 and d(unit.pos, myHero.pos) < 850 then
 				CastSpell(1)
 			end
@@ -334,7 +341,7 @@ end
 function Attack(unit)
 	if ValidTarget(unit, AARange) and CanAttack() then
 		myHero:Attack(unit)
-		LastAA = os.clock() + GetWindUpTime() + (GetLatency()/1000)
+		--LastAA = os.clock() + GetWindUpTime() + (GetLatency()/1000)
 	end
 end 
 function CanMove()
