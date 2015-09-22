@@ -11,7 +11,7 @@ load(Base64Decode("G0x1YVIAAQQEBAgAGZMNChoKdUPEAno9DHYAAXmEBAAAAQAAAEFAAACBgAAAw
 			
 	by Ralphlol  
 	
-	Version 2.48 Updated 9/19/2015
+	Version 2.48 Updated 9/22/2015
 	
 	Check bottom of the first post in the thread for detailed recommended settings guide.
 ]]
