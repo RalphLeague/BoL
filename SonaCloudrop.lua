@@ -46,11 +46,12 @@ function DebugPrint(msg)
 end
 
 function Menu()
-Sona = MenuConfig ("Sona") 
-	Sona:Info("logo", "<img style=' width:300px;height:auto;' src='http://i.imgur.com/GL8EeAe.gif'>")
+Sona = MenuConfig ("Sona")
+	Sona:Info("logo", "<img style=' width:300px;height:auto;' src='".. path.."img\\logo.gif'>")
+	print(path.."img\\logo.gif'>")
 	Sona:Menu("Sett","Settings!")
 		Sona.Sett:Section('General', 'General Settings')
-		Sona.Sett:Boolean("Emote","Emote when target dies", true)
+		--Sona.Sett:Boolean("Emote","Emote when target dies", true)
 		Sona.Sett:Boolean("Debug","Debug", false)
 		Sona.Sett:Section('Items', 'Item Settings')
 		Sona.Sett:Boolean("Item","Use Frost Queen's Claim In Combo", true)
@@ -157,17 +158,49 @@ end
 function drawRange()
 	if not myHero.dead then
 		if Sona.Draws.AA:Value() then	
-			Graphics.DrawCircle(myHero.pos.x, myHero.pos.y, myHero.pos.z, AARange, Graphics.ARGB(80, 32,178,100))
+			--Graphics.DrawCircle(myHero.pos.x, myHero.pos.y, myHero.pos.z, AARange, Graphics.ARGB(80, 32,178,100))
+			DrawCirc(myHero, AARange, 2, Graphics.ARGB(80, 32,178,100), 222, true, true)
 		end 
 		if Sona.Draws.Q:Value() and SpellQ.ready then
-			Graphics.DrawCircle(myHero.pos.x, myHero.pos.y, myHero.pos.z, SpellQ.range, Graphics.ARGB(255,0,128,255))
+			--Graphics.DrawCircle(myHero.pos.x, myHero.pos.y, myHero.pos.z, SpellQ.range, Graphics.ARGB(255,0,128,255))
+			DrawCirc(myHero, SpellQ.range, 2, Graphics.ARGB(255,0,128,255), 55, true, true)
 		end 
 		if Sona.Draws.R:Value() and SpellR.ready  then
-			Graphics.DrawCircle(myHero.pos.x, myHero.pos.y, myHero.pos.z, SpellR.range, Graphics.ARGB(255, 230,230,170))
+			--Graphics.DrawCircle(myHero.pos.x, myHero.pos.y, myHero.pos.z, SpellR.range, Graphics.ARGB(255, 230,230,170))
+			DrawCirc(myHero, SpellR.range, 2, Graphics.ARGB(255, 230,230,170), 111, true, true)
 		end
 	end
 	Core.OutputDebugString("8.51")
 end
+
+function DrawCirc(position, radius, width, color, quality, lfc, onscreen)
+	position 	= position or myHero
+	radius 		= radius
+	width 		= width or 1
+	quality 	= quality or 24
+	color 		= color or Graphics.ARGB(255,255,255,255)
+	lfc 		= lfc
+	onscreen 	= onscreen or false
+ 
+	if lfc == true then
+		local screenMin = Graphics.WorldToScreen(Geometry.Vector3(position.x - radius, position.y, position.z + radius))
+		if onscreen and (screenMin.x >= 0 and screenMin.x <= WINDOW_W) and (screenMin.y >= 0 and screenMin.y <= WINDOW_H) or not onscreen then
+			radius = radius*.92
+			local quality = quality and 2 * math.pi / quality or 2 * math.pi / math.floor(radius / 10)
+			local width = width and width or 1
+			local a = Graphics.WorldToScreen(Geometry.Vector3(position.x + radius * math.cos(0), position.y, position.z - radius * math.sin(0)))
+			for theta = quality, 2 * math.pi + quality * 0.5, quality do
+				local b = Graphics.WorldToScreen(Geometry.Vector3(position.x + radius * math.cos(theta), position.y, position.z - radius * math.sin(theta)))
+				Graphics.DrawLine(Geometry.Vector2(a.x, a.y), Geometry.Vector2(b.x, b.y), tonumber(width), color)
+				a = b
+			end
+		end
+	elseif lfc == false then
+		local radius = radius or 300
+		Graphics.DrawCircle(position, radius, color)
+	end
+end
+
 function exhFunction(unit)
 	myHero:Move(mousePos.x, mousePos.z)
 	if ValidTarget(unit) and exhaust.ready then
@@ -240,8 +273,8 @@ function CastR(unit, count)
 		return false
 	end
 	
-	--local pos = prediction(unit, SpellR.delay, SpellR.speed)
-	local pos = unit.pos
+	local pos = prediction(unit, SpellR.delay, SpellR.speed)
+	--local pos = unit.pos
 
 	if CountEnemiesInUlt(myHero.pos, pos) >= count then
 		myHero:CastSpell(3, pos.x, pos.z)
@@ -289,8 +322,8 @@ function CountEnemiesInUlt(startPos, endPos)
 	local count = 0
 	for _, enemy in ipairs(enemyHeroes) do
 		if not enemy.dead and enemy.visible then
-			--local pos = prediction(enemy, SpellR.delay, SpellR.speed)
-			local pos = enemy.pos
+			local pos = prediction(enemy, SpellR.delay, SpellR.speed)
+			--local pos = enemy.pos
 			if  Rectangle(startPos, endPos, pos)  then 
 				count = count + 1 
 			end
@@ -366,7 +399,6 @@ Callback.Bind('ProcessSpell', function(unit, spell)
 		end
 	end
 	if spell.target and spell.target == myHero and unit.team ~= myHero.team then
-		print("22")
 		if (myHero.mana/myHero.maxMana)*100  < tonumber(Sona.Sett.WMana:Value()) or  (myHero.health/myHero.maxHealth)*100  > tonumber(Sona.Sett.WH:Value())then
 			return false
 		end
@@ -377,6 +409,16 @@ Callback.Bind('ProcessSpell', function(unit, spell)
 		end
 	end
 end)
+
+Callback.Bind('Animation', function(unit, action) 
+	if unit.isMe then 
+		--print(action)
+		if action:lower():find("attack") or  action:lower():find("crit") then
+			LastAA = os.clock()
+		end
+	end
+end)
+
 function Walk()
 	if CanMove() then
 		if d(mousePos, myHero.pos) < 2500 then
@@ -391,7 +433,7 @@ end
 function Attack(unit)
 	if ValidTarget(unit, AARange) and CanAttack() then
 		myHero:Attack(unit)
-		LastAA = os.clock() + GetWindUpTime() + (GetLatency()/1000)
+		--LastAA = os.clock() + GetWindUpTime() + (GetLatency()/1000)
 	end
 end 
 function CanMove()
@@ -421,3 +463,4 @@ end
 function d(p1, p2)
 	return p1:DistanceTo(p2)
 end
+print("Sona Loading")
