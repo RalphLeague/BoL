@@ -441,7 +441,7 @@ function drawRange()
 	end
 end
 
-function DrawCirc(position, radius, width, color, quality, lfc, onscreen)
+function DrawCirc(position, radius, width, color, quality, lfc, onscreen) --prankStar
 	position 	= position or myHero
 	radius 		= radius or 200
 	width 		= width or 1
