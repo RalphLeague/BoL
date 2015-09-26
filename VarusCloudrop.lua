@@ -339,19 +339,6 @@ function Q2(unit, ks)
 	end
 end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 function Coll(EndPos, width, startPos)
 	startPos = startPos or myHero.pos
     local minTable = {}
