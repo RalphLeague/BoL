@@ -1,6 +1,6 @@
 --[[
 Summoner & Item Usage by Ralphlol
-Updated September 6 2015
+Updated September 29 2015
 ]]--
 
 function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:</font> </b><font color=\"#FFFFFF\">" .. message) end
@@ -8,7 +8,7 @@ function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:
 require 'VPrediction'
 vPred = VPrediction()
 
-local version = 1.12
+local version = 1.13
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
@@ -108,8 +108,8 @@ function OnLoad()
 		["ELIXIR"]      = { id = 2140, range = 2140, target = false},
 		["QSS"]	        = { id = 3140, range = 2500, target = false},
 		["MercScim"]	= { id = 3139, range = 2500, target = false},
-		["BRK"]			= { id = 3153, range = 450, target = true},
-		["BWC"]			= { id = 3144, range = 450, target = true},
+		["BRK"]			= { id = 3153, range = 550, target = true},
+		["BWC"]			= { id = 3144, range = 550, target = true},
 		--["DFG"]			= { id = 3128, range = 750, target = false},
 		["HXG"]			= { id = 3146, range = 700, target = false},
 		["ODYNVEIL"]	= { id = 3180, range = 525, target = false},
