@@ -1,12 +1,12 @@
 --[[
 Ralphlol's Utility Suite
-Updated 9/30/2015
-Version 1.161
+Updated 10/02/2015
+Version 1.162
 ]]
 
 function Print(msg) print("<font color=\"#A51842\">Ralphlol's Utility Suite:  </font><font color=\"#FFFFFF\">"..msg) end
 local sEnemies = GetEnemyHeroes()
-local lolPatch = (GetGameVersion and GetGameVersion():find("5.19")) and 1 or 2
+local lolPatch = (GetGameVersion and GetGameVersion():sub(1,4) == "5.19") and 1 or 2
 
 function OnLoad()
     local ToUpdate = {}
