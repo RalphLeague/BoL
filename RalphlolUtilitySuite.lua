@@ -10,7 +10,7 @@ local lolPatch = (GetGameVersion and GetGameVersion():sub(1,4) == "5.19") and 1 
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.Version = 1.161
+    ToUpdate.Version = 1.162
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/RalphlolUtilitySuite.version"
