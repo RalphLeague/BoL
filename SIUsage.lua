@@ -1,6 +1,6 @@
 --[[
 Summoner & Item Usage by Ralphlol
-Updated September 29 2015
+Updated October 5th 2015
 ]]--
 
 function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:</font> </b><font color=\"#FFFFFF\">" .. message) end
@@ -8,7 +8,7 @@ function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:
 require 'VPrediction'
 vPred = VPrediction()
 
-local version = 1.13
+local version = 1.14
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
@@ -385,10 +385,10 @@ function OnProcessSpell(unit, spell)
 	end
 end
 function OnApplyBuff(source, unit, buff)
-	if not buff or not source or not unit then return end
+	if not buff or not source or not source.valid or not unit or not unit.valid then return end
 	
 	if unit.isMe and (MainMenu.cc.Always or MainMenu.cc.Key) then
-		if source.charName == "Rammus" and buff.type ~= 8 then return end
+		if (source.charName == "Rammus" and buff.type ~= 8) or source.charName == "Alistar" or source.charName == "Leesin" then return end
 		if buff.name and ((not cleanse and buff.type == 24) or buff.type == 5 or buff.type == 11 or buff.type == 22 or buff.type == 21 or buff.type == 8)
 		or (buff.type == 10 and buff.name and buff.name:lower():find("fleeslow"))
 		or (MainMenu.cc.Exhaust and buff.name and buff.name:lower():find("summonerexhaust")) then
