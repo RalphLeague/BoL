@@ -649,8 +649,9 @@ Countdown._immuneEffects = {
 	{'OrianaVacuumIndicator.troy', 0.50},
 	{'NocturneUnspeakableHorror_beam.troy', 2},
 	{'GateMarker_green.troy', 1.5},
-	{'Zed_Ult_Tar2getMarker_tar.troy2', 3.6, "zedult"},
+	{'_error_%_$.troy2', 3.6, "zedr"},
 	{'_stasis_skin_ful', 2.6},
+	{'_error_%_$', 4, 'kindredrnodeathbuff'},
 }
 --[[ to add
 pantheon
