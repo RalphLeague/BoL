@@ -12,4 +12,6 @@ ___________           ___.   .__              _____                .__    .__   
 By Ralphlol					 
 Version 1.15
 Updated October 29th 2015
+
+Check bottom of the first post in the thread for detailed recommended settings guide.
 ]]
