@@ -11,4 +11,5 @@ end
 
 function Draw()
 end
+
 AddDrawCallback(function() Draw() end)
