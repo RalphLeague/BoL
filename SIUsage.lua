@@ -1,17 +1,25 @@
 --[[
 Summoner & Item Usage by Ralphlol
-Updated October 5th 2015
+Updated November 3rd 2015
 ]]--
+
+local version = 1.15
+local sEnemies = GetEnemyHeroes()
+local sAllies = GetAllyHeroes()
+local lastRemove = 0
 
 function Print(message) print("<font color=\"#7BF6B6\"><b>Summoner & Item Usage:</font> </b><font color=\"#FFFFFF\">" .. message) end
 
 require 'VPrediction'
 vPred = VPrediction()
 
-local version = 1.14
-local sEnemies = GetEnemyHeroes()
-local sAllies = GetAllyHeroes()
-local lastRemove = 0
+local function Slot(name)
+	if myHero:GetSpellData(SUMMONER_1).name:find(name) then
+		return SUMMONER_1
+	elseif myHero:GetSpellData(SUMMONER_2).name:find(name) then
+		return SUMMONER_2
+	end
+end
 
 function OnLoad()
     local ToUpdate = {}
@@ -127,9 +135,10 @@ function OnLoad()
 	elseif myHero:GetSpellData(5).name:find("exhaust") then
 		exhaust = { slot = 5, key = "F", range =  650, ready = false }
 	end
-	SummonerSlot = CleanseSlot()
-	ignite = IgniteSlot()
+	SummonerSlot = Slot("summonerboost")
+	ignite = Slot("summonerdot")
 	heal = HealSlot()
+	
 	Menu()
 	Debug = false
 	TargetSelector = TargetSelector(TARGET_LESS_CAST_PRIORITY, 1250, DAMAGE_MAGIC)
@@ -167,6 +176,7 @@ function Menu()
 			MainMenu.nItems:addParam("zhon", "Use Zhonyas/Seraphs Before Death", SCRIPT_PARAM_ONOFF, true)
 			MainMenu.nItems:addParam("Key", "Use While Pressed", SCRIPT_PARAM_ONKEYDOWN, false, 32)
 			MainMenu.nItems:addParam("Always", "Use Always", SCRIPT_PARAM_ONOFF, false)
+			MainMenu.nItems:addParam("smite", "Also use champ Smite", SCRIPT_PARAM_ONOFF, true)
 			MainMenu.nItems:addParam("ItemMe", "If My Health % is Less Than", SCRIPT_PARAM_SLICE, 90, 0, 100, 0) 
 			MainMenu.nItems:addParam("ItemTar", "If Target Health % is Less Than", SCRIPT_PARAM_SLICE, 90, 0, 100, 0)
 			
@@ -456,6 +466,15 @@ function UseItemsCC(unit, scary)
 end
 function UseItems(unit, scary)
 	if not ValidTarget(unit) and unit ~= myHero then return end
+	if MainMenu.nItems.smite then
+		local smiteSpell = Slot("summonersmiteduel")
+		if not smiteSpell then
+			smiteSpell = Slot("summonersmiteplayerganker")
+		end
+		if smiteSpell and myHero:CanUseSpell(smiteSpell) and GetDistance(unit) < 500 + myHero.boundingRadius + unit.boundingRadius then
+			CastSpell(smiteSpell, unit)
+		end
+	end
 	for i, Item in pairs(Items) do
 		local Item = Items[i]
 		if Item.id ~= 3140 and Item.id ~= 3139 then
@@ -485,13 +504,7 @@ function findClosestEnemy(obj)
 	return closestEnemy
 end
 Print("Version "..version.." loaded.") 
-function CleanseSlot()
-	if myHero:GetSpellData(SUMMONER_1).name:find("summonerboost") then
-		return SUMMONER_1
-	elseif myHero:GetSpellData(SUMMONER_2).name:find("summonerboost") then
-		return SUMMONER_2
-	end
-end
+
 function HealSlot()
 	if myHero:GetSpellData(SUMMONER_1).name:find("summonerheal")  or myHero:GetSpellData(SUMMONER_1).name:find("summonerbar") then
 		return SUMMONER_1
@@ -499,13 +512,7 @@ function HealSlot()
 		return SUMMONER_2
 	end
 end
-function IgniteSlot()
-	if myHero:GetSpellData(SUMMONER_1).name:find("summonerdot") then
-		return SUMMONER_1
-	elseif myHero:GetSpellData(SUMMONER_2).name:find("summonerdot") then
-		return SUMMONER_2
-	end
-end
+
 function AutoIgnite()
 	local IgniteDmg = 50 + (20 * myHero.level)
 	local aggro = MainMenu.ignite.set == 3 and 0.05 or 0
