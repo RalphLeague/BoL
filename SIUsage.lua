@@ -171,7 +171,7 @@ function Menu()
 				MainMenu.cc:addParam("Summoner", "Use Cleanse Summoner", SCRIPT_PARAM_ONOFF, true) 
 			end
 			MainMenu.cc:addParam("delay", "Removal delay (ms)", SCRIPT_PARAM_SLICE, 0, 0, 250, 0)
-		MainMenu:addSubMenu("Normal Items", "nItems")		
+		MainMenu:addSubMenu("Normal Items/Smite", "nItems")		
 			MainMenu.nItems:addParam("comboItems", "Use Items", SCRIPT_PARAM_ONOFF, true)
 			MainMenu.nItems:addParam("zhon", "Use Zhonyas/Seraphs Before Death", SCRIPT_PARAM_ONOFF, true)
 			MainMenu.nItems:addParam("Key", "Use While Pressed", SCRIPT_PARAM_ONKEYDOWN, false, 32)
