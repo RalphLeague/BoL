@@ -398,7 +398,7 @@ function OnApplyBuff(source, unit, buff)
 	if not buff or not source or not source.valid or not unit or not unit.valid then return end
 	
 	if unit.isMe and (MainMenu.cc.Always or MainMenu.cc.Key) then
-		if (source.charName == "Rammus" and buff.type ~= 8) or source.charName == "Alistar" or source.charName == "Leesin" then return end
+		if (source.charName == "Rammus" and buff.type ~= 8) or source.charName == "Alistar" or source.charName:lower():find("baron") or source.charName:lower():find("spiderboss") or source.charName == "Leesin" then return end	
 		if buff.name and ((not cleanse and buff.type == 24) or buff.type == 5 or buff.type == 11 or buff.type == 22 or buff.type == 21 or buff.type == 8)
 		or (buff.type == 10 and buff.name and buff.name:lower():find("fleeslow"))
 		or (MainMenu.cc.Exhaust and buff.name and buff.name:lower():find("summonerexhaust")) then
