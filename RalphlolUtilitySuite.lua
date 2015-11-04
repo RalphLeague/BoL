@@ -1,7 +1,7 @@
+TestCrashRun = true
 --[[
 Ralphlol's Utility Suite
-Updated 10/30/2015
-Version 1.164
+Updated 11/04/2015
 ]]
 
 function Print(msg) print("<font color=\"#A51842\">Ralphlol's Utility Suite:  </font><font color=\"#FFFFFF\">"..msg) end
@@ -10,7 +10,7 @@ local lolPatch = (GetGameVersion and GetGameVersion():sub(1,4) == "5.21") and 1 
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.Version = 1.164
+    ToUpdate.Version = 1.17
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/RalphlolUtilitySuite.version"
@@ -29,7 +29,7 @@ function OnLoad()
 	if HookPackets then HookPackets() end
 	
 	missCS()
-	jungle()
+	if TestCrashRun then jungle() end
 	Countdown()
 	wardBush()
 	drawMinion()
@@ -434,6 +434,7 @@ function missCS:isGoldFromMinion(minion)
 	end
 end
 
+local junglerName = "NA"
 class 'jungle'
 function jungle:__init()
 	if FileExist(LIB_PATH.."MapPosition.lua") then
@@ -478,6 +479,7 @@ function jungle:__init()
 		if hero ~= nil and hero.team ~= player.team then
 			if hero:GetSpellData(SUMMONER_1).name:lower():find("smite") or hero:GetSpellData(SUMMONER_2).name:lower():find("smite") then
 				self.EnemyJungler = hero
+				junglerName = hero.charName
 			end
 		end
 	end
@@ -532,6 +534,8 @@ function jungle:OnNewPath(unit, startPos, endPos, isDash, dashSpeed ,dashGravity
 	end
 end
 
+local color
+local jungleText = "1"
 function jungle:Draw()	
 	if MainMenu.tower then
 		for name, tower in pairs(turrets) do
@@ -584,7 +588,7 @@ function jungle:Draw()
 	end
 	if not self.jM.enable then return end
 	local color = ARGB(255, 255, 6, 0)
-	if  self.EnemyJungler and self.EnemyJungler.visible and not self.EnemyJungler.dead then
+	if self.EnemyJungler and self.EnemyJungler.visible and not self.EnemyJungler.dead then
 		if GetDistance(self.EnemyJungler) < 4000 then
 			local width =((os.clock() - math.floor(os.clock()))*4)+4
 			local distance = GetDistance(self.EnemyJungler) / 4000
@@ -598,7 +602,7 @@ function jungle:Draw()
 			end
 			return true
 		end
-		local color
+
 		if GetDistance(self.EnemyJungler) > 6200 then
 			color = ARGB(255, 5, 185, 9)
 		elseif GetDistance(self.EnemyJungler) > 2500 then
@@ -607,28 +611,36 @@ function jungle:Draw()
 			color = ARGB(255, 255, 50, 0)
 		end
 		if self.MapPosition:onTopLane(self.EnemyJungler) then
-			DrawTextA("Top Lane",self.jM.jungleT,self.jM.jungleX,self.jM.jungleY,color )
+			jungleText = "Top Lane"
 		elseif self.MapPosition:onMidLane(self.EnemyJungler) then
-			 DrawTextA("Mid Lane",self.jM.jungleT,self.jM.jungleX,self.jM.jungleY,color)
+			jungleText = "Mid Lane"
 		elseif self.MapPosition:onBotLane(self.EnemyJungler) then
-			 DrawTextA("Bot Lane",self.jM.jungleT,self.jM.jungleX,self.jM.jungleY,color)
+			jungleText = "Bot Lane"
 		elseif self.MapPosition:inTopRiver(self.EnemyJungler) then
-			 DrawTextA("Top River",self.jM.jungleT,self.jM.jungleX,self.jM.jungleY,color)
+			jungleText = "Top River"
 		elseif self.MapPosition:inBottomRiver(self.EnemyJungler) then
-			 DrawTextA("Bot River",self.jM.jungleT,self.jM.jungleX,self.jM.jungleY,color)
+			jungleText = "Bot River"
 		elseif self.MapPosition:inLeftBase(self.EnemyJungler) then
-			 DrawTextA("Bot Left Base",self.jM.jungleT,self.jM.jungleX,self.jM.jungleY,color)
+			jungleText = "Bot Left Base"
 		elseif self.MapPosition:inRightBase(self.EnemyJungler) then
-			 DrawTextA("Top Right Base",self.jM.jungleT,self.jM.jungleX,self.jM.jungleY,color)
+			jungleText = "Top Right Base"
 		elseif self.MapPosition:inTopLeftJungle(self.EnemyJungler) then
-			 DrawTextA("Bot Blue Buff Jungle",self.jM.jungleT,self.jM.jungleX,self.jM.jungleY,color)
+			jungleText = "Bot Blue Buff Jungle"
 		elseif self.MapPosition:inTopRightJungle(self.EnemyJungler) then
-			DrawTextA("Top Red Buff Jungle",self.jM.jungleT,self.jM.jungleX,self.jM.jungleY,color)
+			jungleText = "Top Red Buff Jungle"
 		elseif self.MapPosition:inBottomRightJungle(self.EnemyJungler) then
-			DrawTextA("Top Blue Buff Jungle",self.jM.jungleT,self.jM.jungleX,self.jM.jungleY,color)
+			jungleText = "Top Blue Buff Jungle"
 		elseif self.MapPosition:inBottomLeftJungle(self.EnemyJungler) then
-			DrawTextA("Bottom Red Buff Jungle",self.jM.jungleT,self.jM.jungleX,self.jM.jungleY,color)
+			jungleText = "Bottom Red Buff Jungle"
 		end
+		DrawTextA(jungleText,self.jM.jungleT,self.jM.jungleX,self.jM.jungleY,color)
+		if GetTickCount() >= self.lasttime then
+			DrawTextA("__________",self.jM.jungleT,self.jM.jungleX,self.jM.jungleY + 20,color)
+			lasttime = GetTickCount() + 15
+		end
+	elseif jungleText ~= "1" then
+		local color = ARGB(100, 255, 255, 255)
+		DrawTextA(jungleText,self.jM.jungleT,self.jM.jungleX,self.jM.jungleY,color)
 		if GetTickCount() >= self.lasttime then
 			DrawTextA("__________",self.jM.jungleT,self.jM.jungleX,self.jM.jungleY + 20,color)
 			lasttime = GetTickCount() + 15
@@ -1311,6 +1323,9 @@ function recallDraw:RecvPacket(p)
 						activeRecalls[o.networkID] = nil
 						return
 					else
+						if junglerName == activeRecalls[o.networkID].name then
+							jungleText = "Recalled"
+						end
 						if MainMenu.recall.print then
 							Print(activeRecalls[o.networkID].name.." finished recall")
 						end
