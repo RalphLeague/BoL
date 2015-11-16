@@ -69,7 +69,7 @@ function OnSendPacket(p)
 	end
 end
 
----UPDATER--
+---SxUPDATER--
 function OnLoad()
     local ToUpdate = {}
     ToUpdate.Version = hvversion
