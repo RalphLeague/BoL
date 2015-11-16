@@ -1,5 +1,5 @@
 _G.HumanVision = true
-local hvversion = 0.1
+local hvversion = 0.11
 
 local blockMove, blockCast
 local lastMessage = 0
@@ -34,7 +34,7 @@ end
 function OnCastSpell(ID, startPos, endPos, target)
 	if endPos then
 		if not IsOnScreen(endPos) then
-			blockMove = true
+			blockCast = true
 		end
 	elseif target then
 		if not IsOnScreen(target) then
@@ -44,20 +44,21 @@ function OnCastSpell(ID, startPos, endPos, target)
 end
 
 function OnSendPacket(p)
+	if p.header == 313 then print(DumpPacket(p)) end
 	if blockMove and p.header == 33 then
 		blockMove = false
 		
 		p.pos = 35
 		local moveid = p:Decode1()
-		--print(moveid)
+		
+		--print(DumpPacket(p))
 		if moveid == 0x37 or moveid == 0x3D then
 		else
 			p:Block()
-		end
-
-		if os.clock() - lastMessage > 1.5 then
-			Print("Block move")
-			lastMessage = os.clock()
+			if os.clock() - lastMessage > 1.5 then
+				Print("Blocked move")
+				lastMessage = os.clock()
+			end
 		end
 	elseif  blockCast and p.header == 313 then
 		p:Block()
