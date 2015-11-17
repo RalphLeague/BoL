@@ -1,5 +1,5 @@
 _G.HumanVision = true
-local hvversion = 0.11
+local hvversion = 0.12
 
 local blockMove, blockCast
 local lastMessage = 0
@@ -44,7 +44,6 @@ function OnCastSpell(ID, startPos, endPos, target)
 end
 
 function OnSendPacket(p)
-	if p.header == 313 then print(DumpPacket(p)) end
 	if blockMove and p.header == 33 then
 		blockMove = false
 		
