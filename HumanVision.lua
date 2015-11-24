@@ -1,12 +1,14 @@
 local updatedyes = true
 
 _G.HumanVision = true
-local hvversion = 0.13
+local hvversion = 0.14
 
 local blockMove, blockCast
 local lastMessage = 0
 
 local function Print(message) print("<font color=\"#0000e5\"><b>Human Vision:</font> </b><font color=\"#FFFFFF\">" .. message) end
+
+Print("Patch 5.23 Version Loaded")
 
 local function IsOnScreen(spot)
 	local check = WorldToScreen(D3DXVECTOR3(spot.x, spot.y, spot.z))
