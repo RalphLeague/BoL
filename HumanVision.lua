@@ -1,5 +1,7 @@
+local updatedyes = true
+
 _G.HumanVision = true
-local hvversion = 0.12
+local hvversion = 0.13
 
 local blockMove, blockCast
 local lastMessage = 0
@@ -44,22 +46,31 @@ function OnCastSpell(ID, startPos, endPos, target)
 end
 
 function OnSendPacket(p)
-	if blockMove and p.header == 33 then
+	--[[local t = myHero
+	if t then
+		for i=1, p.size do
+		  p.pos=i
+			if p:DecodeF() == t.networkID then
+				print(DumpPacket(p))
+			end
+		end
+	end]]
+	if blockMove and p.header == 0xD8 then
 		blockMove = false
 		
 		p.pos = 35
 		local moveid = p:Decode1()
 		
 		--print(DumpPacket(p))
-		if moveid == 0x37 or moveid == 0x3D then
-		else
+		--if moveid == 0xBD or moveid == 0x37 or moveid == 0x3D then
+		--else
 			p:Block()
 			if os.clock() - lastMessage > 1.5 then
 				Print("Blocked move")
 				lastMessage = os.clock()
 			end
-		end
-	elseif  blockCast and p.header == 313 then
+		--end
+	elseif  blockCast and p.header == 0x0A then
 		p:Block()
 		blockCast = false
 		if os.clock() - lastMessage > 1.5 then
@@ -82,7 +93,9 @@ function OnLoad()
     ToUpdate.CallbackNoUpdate = function(OldVersion) Print(" Version "..ToUpdate.Version.." Loaded") end
     ToUpdate.CallbackNewVersion = function(NewVersion) Print("New Version found ("..NewVersion.."). Please wait until its downloaded") end
     ToUpdate.CallbackError = function(NewVersion) Print("Error while Downloading. Please try again.") end
-    HVScriptUpdate(ToUpdate.Version,ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
+	if updatedyes then
+		HVScriptUpdate(ToUpdate.Version,ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
+	end
 end
 
 class "HVScriptUpdate"
