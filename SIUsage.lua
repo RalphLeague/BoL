@@ -1,9 +1,9 @@
 --[[
 Summoner & Item Usage by Ralphlol
-Updated November 3rd 2015
+Updated November 24th 2015
 ]]--
 
-local version = 1.15
+local version = 1.16
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
@@ -285,7 +285,7 @@ function OnUpdateBuff(unit, buff, stacks)
 			potionOnMana = true
 		elseif buff.name:lower():find("regenerationpotion") or buff.name:lower():find("itemminiregenpotion") then
 			potionOn = true
-		elseif buff.name:lower():find("itemcrystalflask") then
+		elseif buff.name:lower():find("crystalflask") then
 			potionOn = true
 			potionOnMana = true
 		end
@@ -298,7 +298,7 @@ function OnRemoveBuff(unit, buff)
 			potionOnMana = false
 		elseif buff.name:lower():find("regenerationpotion") or buff.name:lower():find("itemminiregenpotion") then
 			potionOn = false
-		elseif buff.name:lower():find("itemcrystalflask") then
+		elseif buff.name:lower():find("crystalflask") then
 			potionOn = false
 			potionOnMana = false
 		end
@@ -308,7 +308,7 @@ local lastPotion = 0
 function UsePotion()
 	if CountEnemiesNearUnitReg(myHero, 750) == 0 then return end
 	if os.clock() - lastPotion < 8 then return end
-	local slot = GetSlotItemFromName("itemcrystalflask")
+	local slot = GetSlotItemFromName("crystalflask")
 	if not slot then
 		slot = GetSlotItemFromName("RegenerationPotion")
 	end
@@ -324,7 +324,7 @@ local lastPotionMana = 0
 function UsePotionMana()
 	if CountEnemiesNearUnitReg(myHero, 1000) == 0 then return end
 	if os.clock() - lastPotionMana < 8 then return end
-	local slot = GetSlotItemFromName("itemcrystalflask")
+	local slot = GetSlotItemFromName("crystalflask")
 	if not slot then
 		slot = GetSlotItemFromName("flaskofcrystalwater")
 	end
@@ -337,7 +337,7 @@ function GetSlotItemFromName(itemname)
 	local slot
 	for i = 6, 12 do
 		local item = myHero:GetSpellData(i).name
-		if ((#item > 0) and (item:lower() == itemname:lower())) then
+		if ((#item > 0) and (item:lower():find(itemname:lower()))) then
 			slot = i
 		end
 	end
@@ -398,7 +398,7 @@ function OnApplyBuff(source, unit, buff)
 	if not buff or not source or not source.valid or not unit or not unit.valid then return end
 	
 	if unit.isMe and (MainMenu.cc.Always or MainMenu.cc.Key) then
-		if (source.charName == "Rammus" and buff.type ~= 8) or source.charName == "Alistar" or source.charName:lower():find("baron") or source.charName:lower():find("spiderboss") or source.charName == "Leesin" then return end	
+		if (source.charName == "Rammus" and buff.type ~= 8) or source.charName == "Alistar" or source.charName:lower():find("baron") or source.charName:lower():find("spiderboss") or source.charName == "LeeSin" or (source.charName == "Hecarim" and not buff.name:lower():find("fleeslow")) then return end	
 		if buff.name and ((not cleanse and buff.type == 24) or buff.type == 5 or buff.type == 11 or buff.type == 22 or buff.type == 21 or buff.type == 8)
 		or (buff.type == 10 and buff.name and buff.name:lower():find("fleeslow"))
 		or (MainMenu.cc.Exhaust and buff.name and buff.name:lower():find("summonerexhaust")) then
