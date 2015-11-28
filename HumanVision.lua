@@ -1,14 +1,22 @@
 local updatedyes = true
 
 _G.HumanVision = true
-local hvversion = 0.14
+local hvversion = 0.2
 
 local blockMove, blockCast
 local lastMessage = 0
+local okMove = false
+local bCount = 0
 
 local function Print(message) print("<font color=\"#0000e5\"><b>Human Vision:</font> </b><font color=\"#FFFFFF\">" .. message) end
 
 Print("Patch 5.23 Version Loaded")
+
+local hvMenu = scriptConfig("Human Vision", "hvLOL")
+
+hvMenu:addParam("msg", "Show messages", SCRIPT_PARAM_ONOFF, false)
+hvMenu:addParam("info12","", SCRIPT_PARAM_INFO, "")
+hvMenu:addParam("info22","Total Commands Blocked: 0", SCRIPT_PARAM_INFO, "")
 
 local function IsOnScreen(spot)
 	local check = WorldToScreen(D3DXVECTOR3(spot.x, spot.y, spot.z))
@@ -37,6 +45,7 @@ end
 
 function OnCastSpell(ID, startPos, endPos, target)
 	if endPos then
+		if GetDistance(endPos) > 9900 and GetDistance(endPos) < 10000 then return end
 		if not IsOnScreen(endPos) then
 			blockCast = true
 		end
@@ -45,6 +54,12 @@ function OnCastSpell(ID, startPos, endPos, target)
 			blockCast = true
 		end
 	end
+end
+
+function OnWndMsg(msg, key)
+    if msg == 516 and key == 2 then
+        okMove = true
+    end
 end
 
 function OnSendPacket(p)
@@ -59,31 +74,39 @@ function OnSendPacket(p)
 	end]]
 	if blockMove and p.header == 0xD8 then
 		blockMove = false
+		if okMove then okMove = false return end
 		
 		p.pos = 35
 		local moveid = p:Decode1()
+		p:Block()
 		
-		--print(DumpPacket(p))
-		--if moveid == 0xBD or moveid == 0x37 or moveid == 0x3D then
-		--else
-			p:Block()
-			if os.clock() - lastMessage > 1.5 then
-				Print("Blocked move")
-				lastMessage = os.clock()
-			end
-		--end
+		bCount = bCount + 1
+		hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
+		if hvMenu.msg and os.clock() - lastMessage > 1.5 then
+			Print("Blocked move")
+			lastMessage = os.clock()
+		end
 	elseif  blockCast and p.header == 0x0A then
 		p:Block()
 		blockCast = false
-		if os.clock() - lastMessage > 1.5 then
+		
+		bCount = bCount + 1
+		hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
+		if hvMenu.msg and os.clock() - lastMessage > 1.5 then
 			Print("Blocked cast")
 			lastMessage = os.clock()
 		end
+	end
+	
+	if p.header == 0xD8 and okMove then
+		okMove = false
 	end
 end
 
 ---SxUPDATER--
 function OnLoad()
+
+	
     local ToUpdate = {}
     ToUpdate.Version = hvversion
     ToUpdate.UseHttps = true
