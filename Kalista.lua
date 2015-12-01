@@ -13,5 +13,5 @@ load(Base64Decode("G0x1YVIAAQQEBAgAGZMNChoKy9nOVB+paEwAAXmEBAAAAQAAAEFAAACBgAAAw
 	
 	Version 2.544 Updated 12/1/2015
 	
-	Check bottom of the first post in the thread for detailed recommended settings guide.
+	Check out the script guide at www.machinescripts.xyz
 ]]
