@@ -1,7 +1,7 @@
 local updatedyes = true
 
 _G.HumanVision = true
-local hvversion = 0.2
+local hvversion = 0.21
 
 local blockMove, blockCast
 local lastMessage = 0
@@ -28,7 +28,7 @@ end
 
 _G.ValidTarget = function(object, distance, enemyTeam)
 	local enemyTeam = (enemyTeam ~= false)
-	return object ~= nil and object.valid and object.name and (object.type == myHero.type or object.type:find("obj_AI")) and (object.team ~= player.team) == enemyTeam and object.visible and not object.dead and (enemyTeam == false or object.bInvulnerable == 0) and (distance == nil or GetDistanceSqr(object) <= distance * distance) and IsOnScreen(object)
+	return object ~= nil and object.valid and object.name and (object.type == myHero.type or object.type:find("obj_AI")) and object.bTargetable and (object.team ~= player.team) == enemyTeam and object.visible and not object.dead and (enemyTeam == false or object.bInvulnerable == 0) and (distance == nil or GetDistanceSqr(object) <= distance * distance) and IsOnScreen(object)
 end
 
 function OnIssueOrder(source, order, position, target)
@@ -72,12 +72,9 @@ function OnSendPacket(p)
 			end
 		end
 	end]]
-	if blockMove and p.header == 0xD8 then
+	if blockMove and p.header == 197 then
 		blockMove = false
 		if okMove then okMove = false return end
-		
-		p.pos = 35
-		local moveid = p:Decode1()
 		p:Block()
 		
 		bCount = bCount + 1
@@ -86,7 +83,7 @@ function OnSendPacket(p)
 			Print("Blocked move")
 			lastMessage = os.clock()
 		end
-	elseif  blockCast and p.header == 0x0A then
+	elseif  blockCast and p.header == 0xA6 then
 		p:Block()
 		blockCast = false
 		
@@ -98,7 +95,7 @@ function OnSendPacket(p)
 		end
 	end
 	
-	if p.header == 0xD8 and okMove then
+	if p.header == 197 and okMove then
 		okMove = false
 	end
 end
