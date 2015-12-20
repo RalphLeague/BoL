@@ -1,9 +1,9 @@
 --[[
 Summoner & Item Usage by Ralphlol
-Updated November 24th 2015
+Updated December 20th 2015
 ]]--
 
-local version = 1.16
+local version = 1.17
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
@@ -158,11 +158,12 @@ function Menu()
 		MainMenu:addSubMenu("Health Potions", "potion")
 			MainMenu.potion:addParam("Key", "Use While Pressed", SCRIPT_PARAM_ONKEYDOWN, false, 32)
 			MainMenu.potion:addParam("Always", "Use Always", SCRIPT_PARAM_ONOFF, false)
+			MainMenu.potion:addParam("enemy", "Use if no enemies", SCRIPT_PARAM_ONOFF, false)
 			MainMenu.potion:addParam("health", "If My Health % is <", SCRIPT_PARAM_SLICE, 60, 0, 100, 0) 
-		MainMenu:addSubMenu("Mana Potions", "potionMana")
-			MainMenu.potionMana:addParam("Key", "Use While Pressed", SCRIPT_PARAM_ONKEYDOWN, false, 32)
-			MainMenu.potionMana:addParam("Always", "Use Always", SCRIPT_PARAM_ONOFF, false)
-			MainMenu.potionMana:addParam("health", "If My Mana % is <", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
+	--	MainMenu:addSubMenu("Mana Potions", "potionMana")
+	--		MainMenu.potionMana:addParam("Key", "Use While Pressed", SCRIPT_PARAM_ONKEYDOWN, false, 32)
+	--		MainMenu.potionMana:addParam("Always", "Use Always", SCRIPT_PARAM_ONOFF, false)
+	--		MainMenu.potionMana:addParam("health", "If My Mana % is <", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
 		MainMenu:addSubMenu("Remove CC", "cc")
 			MainMenu.cc:addParam("Key", "Use While Pressed", SCRIPT_PARAM_ONKEYDOWN, false, 32)
 			MainMenu.cc:addParam("Always", "Use Always", SCRIPT_PARAM_ONOFF, true)
@@ -194,8 +195,27 @@ function Menu()
 		if heal then
 			MainMenu:addSubMenu("Summoner Heal/Barrier", "heal")
 			MainMenu.heal:addParam("enable", "Use Summoner", SCRIPT_PARAM_ONOFF, true)
-			MainMenu.heal:addParam("health", "If My Health % is Less Than", SCRIPT_PARAM_SLICE, 10, 0, 100, 0) 			
+			MainMenu.heal:addParam("health", "If My Health % is Less Than", SCRIPT_PARAM_SLICE, 10, 0, 100, 0)
+			if realheals then
+				MainMenu.heal:addParam("ally", "Also use on ally", SCRIPT_PARAM_ONOFF, false)
+			end
 		end	
+end
+
+function findClosestAlly(obj)
+    local closestAlly = nil
+    local currentAlly = nil
+	for i, currentAlly in pairs(sAllies) do
+        if currentAlly and not currentAlly.dead then
+            if closestAlly == nil then
+                closestAlly = currentAlly
+			end
+            if GetDistanceSqr(currentAlly.pos, obj) < GetDistanceSqr(closestAlly.pos, obj) then
+				closestAlly = currentAlly
+            end
+        end
+    end
+	return closestAlly
 end
 
 function OnTick()
@@ -218,6 +238,15 @@ function OnTick()
 				elseif  myHero.level < 6 and myHero.health/myHero.maxHealth < (MainMenu.heal.health/100)*.75 then
 					CastSpell(heal)
 				end
+				
+				if realheals and MainMenu.heal.ally then
+					local ally = findClosestAlly(myHero)
+					if ally and not ally.dead and GetDistance(ally) < 850 then
+						if  ally.health/ally.maxHealth < MainMenu.heal.health/100 then
+							CastSpell(heal)
+						end
+					end
+				end
 			end
 		end
 	end
@@ -234,8 +263,8 @@ function OnTick()
 	if not myHero.dead then
 		if (MainMenu.potion.Key or MainMenu.potion.Always) and not potionOn and not InFountain() and (myHero.health/myHero.maxHealth)*100 < MainMenu.potion.health then
 			UsePotion()
-		elseif (MainMenu.potionMana.Key or MainMenu.potionMana.Always) and not potionOnMana and not InFountain() and (myHero.mana/myHero.maxMana)*100 < MainMenu.potionMana.health then
-			UsePotionMana()
+		--elseif (MainMenu.potionMana.Key or MainMenu.potionMana.Always) and not potionOnMana and not InFountain() and (myHero.mana/myHero.maxMana)*100 < MainMenu.potionMana.health then
+		--	UsePotionMana()
 		end
 	end
 	
@@ -306,7 +335,10 @@ function OnRemoveBuff(unit, buff)
 end
 local lastPotion = 0
 function UsePotion()
-	if CountEnemiesNearUnitReg(myHero, 750) == 0 then return end
+	if not MainMenu.potion.enemy then
+		if CountEnemiesNearUnitReg(myHero, 750) == 0 then return end
+	end
+	
 	if os.clock() - lastPotion < 8 then return end
 	local slot = GetSlotItemFromName("crystalflask")
 	if not slot then
@@ -404,7 +436,7 @@ function OnApplyBuff(source, unit, buff)
 		or (MainMenu.cc.Exhaust and buff.name and buff.name:lower():find("summonerexhaust")) then
 			if buff.name and buff.name:lower():find("caitlynyor") and CountEnemiesNearUnitReg(myHero, 700) == 0   then
 				return false
-			elseif not buff.name:lower():find("rocketgrab2") then
+			elseif not source.charName:lower():find("blitzcrank") then
 				UseItemsCC(myHero, true)
 			end          
 		end                    
@@ -506,6 +538,9 @@ end
 Print("Version "..version.." loaded.") 
 
 function HealSlot()
+	if myHero:GetSpellData(SUMMONER_1).name:find("summonerheal") or myHero:GetSpellData(SUMMONER_2).name:find("summonerheal") then
+		realheals = true
+	end
 	if myHero:GetSpellData(SUMMONER_1).name:find("summonerheal")  or myHero:GetSpellData(SUMMONER_1).name:find("summonerbar") then
 		return SUMMONER_1
 	elseif myHero:GetSpellData(SUMMONER_2).name:find("summonerheal") or myHero:GetSpellData(SUMMONER_1).name:find("summonerbar") then
