@@ -1,7 +1,7 @@
 local updatedyes = true
 
 _G.HumanVision = true
-local hvversion = 0.21
+local hvversion = 0.22
 
 local blockMove, blockCast
 local lastMessage = 0
@@ -35,10 +35,30 @@ function OnIssueOrder(source, order, position, target)
 	if order == 2 then
 		if not IsOnScreen(position) then
 			blockMove = true
+
+			if okMove then okMove = false return end
+			BlockOrder()
+			
+			bCount = bCount + 1
+			hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
+			if hvMenu.msg and os.clock() - lastMessage > 1.5 then
+				Print("Blocked move")
+				lastMessage = os.clock()
+			end		
 		end
 	elseif order == 3 then
 		if not IsOnScreen(target) then
 			blockMove = true
+
+			if okMove then okMove = false return end
+			BlockOrder()
+			
+			bCount = bCount + 1
+			hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
+			if hvMenu.msg and os.clock() - lastMessage > 1.5 then
+				Print("Blocked move")
+				lastMessage = os.clock()
+			end
 		end
 	end
 end
@@ -48,10 +68,26 @@ function OnCastSpell(ID, startPos, endPos, target)
 		if GetDistance(endPos) > 9900 and GetDistance(endPos) < 10000 then return end
 		if not IsOnScreen(endPos) then
 			blockCast = true
+			BlockSpell()
+			
+			bCount = bCount + 1
+			hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
+			if hvMenu.msg and os.clock() - lastMessage > 1.5 then
+				Print("Blocked cast")
+				lastMessage = os.clock()
+			end
 		end
 	elseif target then
 		if not IsOnScreen(target) then
 			blockCast = true
+			BlockSpell()
+			
+			bCount = bCount + 1
+			hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
+			if hvMenu.msg and os.clock() - lastMessage > 1.5 then
+				Print("Blocked cast")
+				lastMessage = os.clock()
+			end
 		end
 	end
 end
@@ -61,8 +97,6 @@ function OnWndMsg(msg, key)
         okMove = true
     end
 end
-
-function OnSendPacket(p)
 	--[[local t = myHero
 	if t then
 		for i=1, p.size do
@@ -72,6 +106,9 @@ function OnSendPacket(p)
 			end
 		end
 	end]]
+--[[
+function OnSendPacket(p)
+
 	if blockMove and p.header == 197 then
 		blockMove = false
 		if okMove then okMove = false return end
@@ -98,7 +135,7 @@ function OnSendPacket(p)
 	if p.header == 197 and okMove then
 		okMove = false
 	end
-end
+end]]
 
 ---SxUPDATER--
 function OnLoad()
