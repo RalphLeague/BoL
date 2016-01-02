@@ -1,5 +1,4 @@
 local updatedyes = true
-
 _G.HumanVision = true
 local hvversion = 0.22
 
