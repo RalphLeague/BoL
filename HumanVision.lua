@@ -1,6 +1,7 @@
 local updatedyes = true
+
 _G.HumanVision = true
-local hvversion = 0.22
+local hvversion = 0.23
 
 local blockMove, blockCast
 local lastMessage = 0
@@ -33,10 +34,10 @@ end
 function OnIssueOrder(source, order, position, target)
 	if order == 2 then
 		if not IsOnScreen(position) then
+			if okMove then okMove = false return end
 			blockMove = true
 
-			if okMove then okMove = false return end
-			BlockOrder()
+			--BlockOrder()
 			
 			bCount = bCount + 1
 			hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
@@ -47,10 +48,10 @@ function OnIssueOrder(source, order, position, target)
 		end
 	elseif order == 3 then
 		if not IsOnScreen(target) then
+			if okMove then okMove = false return end
 			blockMove = true
 
-			if okMove then okMove = false return end
-			BlockOrder()
+			--BlockOrder()
 			
 			bCount = bCount + 1
 			hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
@@ -105,9 +106,8 @@ end
 			end
 		end
 	end]]
---[[
-function OnSendPacket(p)
 
+function OnSendPacket(p)
 	if blockMove and p.header == 197 then
 		blockMove = false
 		if okMove then okMove = false return end
@@ -119,7 +119,7 @@ function OnSendPacket(p)
 			Print("Blocked move")
 			lastMessage = os.clock()
 		end
-	elseif  blockCast and p.header == 0xA6 then
+	--[[elseif  blockCast and p.header == 0xA6 then
 		p:Block()
 		blockCast = false
 		
@@ -128,18 +128,16 @@ function OnSendPacket(p)
 		if hvMenu.msg and os.clock() - lastMessage > 1.5 then
 			Print("Blocked cast")
 			lastMessage = os.clock()
-		end
+		end]]
 	end
 	
 	if p.header == 197 and okMove then
 		okMove = false
 	end
-end]]
+end
 
 ---SxUPDATER--
 function OnLoad()
-
-	
     local ToUpdate = {}
     ToUpdate.Version = hvversion
     ToUpdate.UseHttps = true
