@@ -1,7 +1,7 @@
 local updatedyes = true
 
 _G.HumanVision = true
-local hvversion = 0.23
+local hvversion = 0.24
 
 local blockMove, blockCast
 local lastMessage = 0
@@ -108,7 +108,7 @@ end
 	end]]
 
 function OnSendPacket(p)
-	if blockMove and p.header == 197 then
+	if blockMove and p.header == 257 then
 		blockMove = false
 		if okMove then okMove = false return end
 		p:Block()
@@ -131,7 +131,7 @@ function OnSendPacket(p)
 		end]]
 	end
 	
-	if p.header == 197 and okMove then
+	if p.header == 257 and okMove then
 		okMove = false
 	end
 end
