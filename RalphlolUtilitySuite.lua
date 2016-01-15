@@ -10,7 +10,7 @@ local lolPatch = (GetGameVersion and GetGameVersion():sub(1,3) == "6.1") and 1 o
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.Version = 1.2
+    ToUpdate.Version = 1.201
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/RalphlolUtilitySuite.version"
@@ -1320,7 +1320,7 @@ function recallDraw:RecvPacket(p)
 			local o = objManager:GetObjectByNetworkId(DwordToFloat(netID))
 
 			if o and o.valid and o.type == 'AIHeroClient' and o.team == TEAM_ENEMY then
-				p.pos = 10
+				p.pos = 11
 				local str = ''
 				for i=1, p.size do
 					local char = p:Decode1()
