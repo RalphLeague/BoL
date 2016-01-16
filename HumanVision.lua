@@ -1,7 +1,7 @@
 local updatedyes = true
 
 _G.HumanVision = true
-local hvversion = 0.24
+local hvversion = 0.25
 
 local blockMove, blockCast
 local lastMessage = 0
@@ -10,7 +10,7 @@ local bCount = 0
 
 local function Print(message) print("<font color=\"#0000e5\"><b>Human Vision:</font> </b><font color=\"#FFFFFF\">" .. message) end
 
-Print("Patch 5.24 Version Loaded")
+Print("Patch 6.1 Version Loaded")
 
 local hvMenu = scriptConfig("Human Vision", "hvLOL")
 
