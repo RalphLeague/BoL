@@ -1,7 +1,7 @@
 local updatedyes = true
 
 _G.HumanVision = true
-local hvversion = 0.25
+local hvversion = 0.26
 
 local blockMove, blockCast
 local lastMessage = 0
@@ -18,6 +18,12 @@ hvMenu:addParam("msg", "Show messages", SCRIPT_PARAM_ONOFF, false)
 hvMenu:addParam("info12","", SCRIPT_PARAM_INFO, "")
 hvMenu:addParam("info22","Total Commands Blocked: 0", SCRIPT_PARAM_INFO, "")
 
+hvMenu:addSubMenu(myHero.charName.." Spell Whitelist", myHero.charName)
+	hvMenu[myHero.charName]:addParam("0", "Spell Q", SCRIPT_PARAM_ONOFF, false)
+	hvMenu[myHero.charName]:addParam("1", "Spell W", SCRIPT_PARAM_ONOFF, false)
+	hvMenu[myHero.charName]:addParam("2", "Spell E", SCRIPT_PARAM_ONOFF, false)
+	hvMenu[myHero.charName]:addParam("3", "Spell R", SCRIPT_PARAM_ONOFF, false)
+		
 local function IsOnScreen(spot)
 	local check = WorldToScreen(D3DXVECTOR3(spot.x, spot.y, spot.z))
 	local x, y = check.x, check.y
@@ -64,36 +70,38 @@ function OnIssueOrder(source, order, position, target)
 end
 
 function OnCastSpell(ID, startPos, endPos, target)
-	if endPos then
-		if GetDistance(endPos) > 9900 and GetDistance(endPos) < 10000 then return end
-		if not IsOnScreen(endPos) then
-			blockCast = true
-			BlockSpell()
-			
-			bCount = bCount + 1
-			hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
-			if hvMenu.msg and os.clock() - lastMessage > 1.5 then
-				Print("Blocked cast")
-				lastMessage = os.clock()
+	if not hvMenu[myHero.charName][tostring(ID)] then
+		if endPos then
+			if GetDistance(endPos) > 9900 and GetDistance(endPos) < 10000 then return end
+			if not IsOnScreen(endPos) then
+				blockCast = true
+				BlockSpell()
+				
+				bCount = bCount + 1
+				hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
+				if hvMenu.msg and os.clock() - lastMessage > 1.5 then
+					Print("Blocked cast")
+					lastMessage = os.clock()
+				end
 			end
-		end
-	elseif target then
-		if not IsOnScreen(target) then
-			blockCast = true
-			BlockSpell()
-			
-			bCount = bCount + 1
-			hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
-			if hvMenu.msg and os.clock() - lastMessage > 1.5 then
-				Print("Blocked cast")
-				lastMessage = os.clock()
+		elseif target then
+			if not IsOnScreen(target) then
+				blockCast = true
+				BlockSpell()
+				
+				bCount = bCount + 1
+				hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
+				if hvMenu.msg and os.clock() - lastMessage > 1.5 then
+					Print("Blocked cast")
+					lastMessage = os.clock()
+				end
 			end
 		end
 	end
 end
 
 function OnWndMsg(msg, key)
-    if msg == 516 and key == 2 then
+	if msg == 516 and key == 2 then
         okMove = true
     end
 end
