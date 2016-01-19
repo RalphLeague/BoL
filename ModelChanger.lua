@@ -69,7 +69,7 @@ Models = {
 }
 function OnLoad()
 	local ToUpdate = {}
-    ToUpdate.Version = 1.31
+    ToUpdate.Version = 1.32
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/ModelChanger.version"
