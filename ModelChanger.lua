@@ -1,4 +1,4 @@
-_G.Model_Version = 1.31
+_G.Model_Version = 1.32
 timeran = os.clock()
 function Print(message) print("<font color=\"#0000E5\"> Model Changer:</font> <font color=\"#FFFFFF\">" .. message) end
 
@@ -47,7 +47,7 @@ Models = {
 	"SRU_Red",
 	"SRU_Blue",
 	"SRU_Gromp",
-	"SonaDJGenre01",
+	"Sona",
 	"SRU_Baron",
 	"Sru_Porowl",
 	"BW_Ironback",
@@ -157,42 +157,42 @@ function OnTick()
 end
 --00 05 00 00 40 1A C0 78 78 78 1A 53 C1 C1 C1 C1 52 61 6D 6D 75 73 50 42 00 4C 6F 63 61 74 69 6F 08 00 00 00 0F 00 00 00 00 80 3F 83 
 function MakeModel(modelName)
-   local p = CLoLPacket(182)
-	p.vTable = 14784720
-    p:EncodeF(player.networkID)
-	p:Encode1(0x1A)
-	p:Encode1(0xC0)
-	p:Encode1(0x78)
-	p:Encode1(0x78)
-	p:Encode1(0x78)
-	p:Encode1(0x1A)
-	p:Encode1(0x53)
-	p:Encode1(0xC1)
-	p:Encode1(0xC1)
-	p:Encode1(0xC1)
-	p:Encode1(0xC1)
-	local count = 0
-	for c in modelName:gmatch'.' do
-	  p:Encode1(string.byte(c))
-	  count = count + 1
+	if SetSkin then
+		local mP = CLoLPacket(0x9C);
+		local mObject = modelName
+		
+		mP.vTable = 15650104;
+		mP:EncodeF(myHero.networkID);
+		mP:Encode4(0xA4A4A4A4);
+		mP:Encode1(0x3A);
+		mP:Encode1(0x3A);
+		mP:Encode1(0x3A);
+		mP:Encode1(0x3A);
+		mP:Encode1(0x55);
+		mP:Encode1(0xAC);
+		mP:Encode1(0x58);
+		
+		for I = 1, string.len(mObject) do
+			mP:Encode1(string.byte(string.sub(mObject, I, I)));
+		end;
+
+		for I = 1, (16 - string.len(mObject)) do
+			mP:Encode1(0x00);
+		end;
+
+		mP:Encode1(0x07);
+		mP:Encode1(0x00);
+		mP:Encode1(0x00);
+		mP:Encode1(0x00);
+		mP:Encode1(0x0F);
+		mP:Encode1(0x00);
+		mP:Encode1(0x00);
+		
+		mP:Encode4(0x00000000);
+		mP:Encode1(0x00);
+		mP:Hide();
+		RecvPacket(mP);
 	end
-	for i = 1, 16 - count do
-		p:Encode1(0x00)
-	end
-	p:Encode1(0x08)
-	p:Encode1(0x00)
-	p:Encode1(0x00)
-	p:Encode1(0x00)
-	p:Encode1(0x0F)
-	p:Encode1(0x00)
-	p:Encode1(0x00)
-	p:Encode1(0x00)
-	p:Encode1(0x00)
-	p:Hide()
-	--local file = io.open(SCRIPT_PATH .. "skinchanger.txt", "a")
-	--file:write(DumpPacketData(p))
-	--file:close()
-    RecvPacket(p)
 end
 
 class "MCScriptUpdater"
