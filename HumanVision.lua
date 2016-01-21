@@ -1,7 +1,7 @@
 local updatedyes = true
 
 _G.HumanVision = true
-local hvversion = 0.26
+local hvversion = 0.5
 
 local blockMove, blockCast
 local lastMessage = 0
@@ -14,8 +14,8 @@ Print("Patch 6.1 Version Loaded")
 
 local hvMenu = scriptConfig("Human Vision", "hvLOL")
 
+hvMenu:addParam("info23","", SCRIPT_PARAM_INFO, "")
 hvMenu:addParam("msg", "Show messages", SCRIPT_PARAM_ONOFF, false)
-hvMenu:addParam("info12","", SCRIPT_PARAM_INFO, "")
 hvMenu:addParam("info22","Total Commands Blocked: 0", SCRIPT_PARAM_INFO, "")
 
 hvMenu:addSubMenu(myHero.charName.." Spell Whitelist", myHero.charName)
@@ -23,7 +23,16 @@ hvMenu:addSubMenu(myHero.charName.." Spell Whitelist", myHero.charName)
 	hvMenu[myHero.charName]:addParam("1", "Spell W", SCRIPT_PARAM_ONOFF, false)
 	hvMenu[myHero.charName]:addParam("2", "Spell E", SCRIPT_PARAM_ONOFF, false)
 	hvMenu[myHero.charName]:addParam("3", "Spell R", SCRIPT_PARAM_ONOFF, false)
-		
+
+hvMenu:addSubMenu("Movement Limiter", "move")
+	hvMenu.move:addParam("info23","Max Actions Per Second", SCRIPT_PARAM_INFO, "")
+	hvMenu.move:addParam("lhit", "Last Hit", SCRIPT_PARAM_SLICE, 5, 1, 20, 0)
+	hvMenu.move:addParam("lclear", "Lane Clear", SCRIPT_PARAM_SLICE, 5, 1, 20, 0)
+	hvMenu.move:addParam("harass", "Harass", SCRIPT_PARAM_SLICE, 7, 1, 20, 0)
+	hvMenu.move:addParam("combo", "Combo", SCRIPT_PARAM_SLICE, 12, 1, 20, 0)
+	hvMenu.move:addParam("perm", "Persistant", SCRIPT_PARAM_SLICE, 8, 1, 20, 0)
+
+	
 local function IsOnScreen(spot)
 	local check = WorldToScreen(D3DXVECTOR3(spot.x, spot.y, spot.z))
 	local x, y = check.x, check.y
@@ -37,8 +46,14 @@ _G.ValidTarget = function(object, distance, enemyTeam)
 	return object ~= nil and object.valid and object.name and (object.type == myHero.type or object.type:find("obj_AI")) and object.bTargetable and (object.team ~= player.team) == enemyTeam and object.visible and not object.dead and (enemyTeam == false or object.bInvulnerable == 0) and (distance == nil or GetDistanceSqr(object) <= distance * distance) and IsOnScreen(object)
 end
 
+local lastCommand = 0
 function OnIssueOrder(source, order, position, target)
-	if order == 2 then
+	if os.clock() - lastCommand < moveEvery() then
+		blockMove = true
+		bCount = bCount + 1
+		hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
+		return
+	elseif order == 2 then
 		if not IsOnScreen(position) then
 			if okMove then okMove = false return end
 			blockMove = true
@@ -50,7 +65,8 @@ function OnIssueOrder(source, order, position, target)
 			if hvMenu.msg and os.clock() - lastMessage > 1.5 then
 				Print("Blocked move")
 				lastMessage = os.clock()
-			end		
+			end
+			return
 		end
 	elseif order == 3 then
 		if not IsOnScreen(target) then
@@ -65,12 +81,15 @@ function OnIssueOrder(source, order, position, target)
 				Print("Blocked move")
 				lastMessage = os.clock()
 			end
+			return
 		end
 	end
+	
+	lastCommand = os.clock()
 end
 
 function OnCastSpell(ID, startPos, endPos, target)
-	if not hvMenu[myHero.charName][tostring(ID)] then
+	if ID ~= 13 and not hvMenu[myHero.charName][tostring(ID)] then
 		if endPos then
 			if GetDistance(endPos) > 9900 and GetDistance(endPos) < 10000 then return end
 			if not IsOnScreen(endPos) then
@@ -145,6 +164,7 @@ function OnSendPacket(p)
 end
 
 ---SxUPDATER--
+do
 function OnLoad()
     local ToUpdate = {}
     ToUpdate.Version = hvversion
@@ -160,6 +180,8 @@ function OnLoad()
 	if updatedyes then
 		HVScriptUpdate(ToUpdate.Version,ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
 	end
+	
+	DelayAction(findOrbwalk, 15)
 end
 
 class "HVScriptUpdate"
@@ -351,4 +373,80 @@ function HVScriptUpdate:DownloadUpdate()
         end
         self.GotHVScriptUpdate = true
     end
+end
+end
+
+local function IsLaneclear()
+	if sacUsed and _G.AutoCarry.Keys.LaneClear then
+		return true
+	elseif sxorbUsed and SxOrb.isLaneClear then
+		return true
+	elseif mmaUsed and _G.MMA_IsLaneClearing() then
+		return true
+	elseif norbUsed and _G.NebelwolfisOrbWalker.Config.k.LaneClear then
+		return true
+	end
+end
+local function IsLastHit()
+	if sacUsed and _G.AutoCarry.Keys.LastHit then
+		return true
+	elseif sxorbUsed and SxOrb.isLastHit then
+		return true
+	elseif mmaUsed and _G.MMA_IsLastHitting() then
+		return true
+	elseif norbUsed and _G.NebelwolfisOrbWalker.Config.k.LastHit then
+		return true
+	end
+end
+local function IsCombo()
+	if sacUsed and _G.AutoCarry.Keys.AutoCarry then
+		return true
+	elseif sxorbUsed and SxOrb.isFight then
+		return true
+	elseif mmaUsed and _G.MMA_IsOrbwalking() then
+		--print("combo")
+		return true
+	elseif norbUsed and _G.NebelwolfisOrbWalker.Config.k.Combo then
+		return true
+	end
+end
+local function IsHarass()
+	if sacUsed and _G.AutoCarry.Keys.MixedMode then
+		return true
+	elseif sxorbUsed and SxOrb.isHarass then
+		return true
+	elseif mmaUsed and _G.MMA_IsDualCarrying() then
+		return true
+	elseif norbUsed and _G.NebelwolfisOrbWalker.Config.k.Harass then
+		return true
+	end
+end
+
+function moveEvery()
+	if IsCombo() then
+		return 1 / hvMenu.move.combo
+	elseif IsLastHit() then
+		return 1 / hvMenu.move.lhit
+	elseif IsHarass() then
+		return 1 / hvMenu.move.harass
+	elseif IsLaneclear() then
+		return 1 / hvMenu.move.lclear
+	else
+		return 1 / hvMenu.move.perm 
+	end
+end
+function findOrbwalk()
+	 if _G.Reborn_Loaded and not _G.Reborn_Initialised then
+        DelayAction(CheckOrbwalk, 1)
+    elseif _G.Reborn_Initialised then
+        sacUsed = true
+    elseif _G.MMA_IsLoaded then
+		mmaUsed = true
+	elseif _G.NebelwolfisOrbWalkerLoaded then
+		norbUsed = true
+	elseif _G.SxOrb then
+		sxorbUsed = true
+	else
+		Print("Orbwalker not supported. Only movement limiter persistant will work.")
+	end
 end
