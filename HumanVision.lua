@@ -1,20 +1,25 @@
 local updatedyes = true
 
 _G.HumanVision = true
-local hvversion = 0.5
+local hvversion = 0.51
 
 local blockMove, blockCast
 local lastMessage = 0
 local okMove = false
 local bCount = 0
 
-local function Print(message) print("<font color=\"#0000e5\"><b>Human Vision:</font> </b><font color=\"#FFFFFF\">" .. message) end
+local sEnemies = GetEnemyHeroes()
+local missingEnemy = {}
+for i, Enemy in pairs(sEnemies) do
+	missingEnemy[Enemy.charName] = os.clock()
+end
 
-Print("Patch 6.1 Version Loaded")
+local function Print(message) print("<font color=\"#0000e5\"><b>Human Vision:</font> </b><font color=\"#FFFFFF\">" .. message) end
 
 local hvMenu = scriptConfig("Human Vision", "hvLOL")
 
 hvMenu:addParam("info23","", SCRIPT_PARAM_INFO, "")
+hvMenu:addParam("fow", "Ignore new FoW enemies", SCRIPT_PARAM_ONOFF, true)
 hvMenu:addParam("msg", "Show messages", SCRIPT_PARAM_ONOFF, false)
 hvMenu:addParam("info22","Total Commands Blocked: 0", SCRIPT_PARAM_INFO, "")
 
@@ -25,6 +30,8 @@ hvMenu:addSubMenu(myHero.charName.." Spell Whitelist", myHero.charName)
 	hvMenu[myHero.charName]:addParam("3", "Spell R", SCRIPT_PARAM_ONOFF, false)
 
 hvMenu:addSubMenu("Movement Limiter", "move")
+	hvMenu.move:addParam("enable", "Use Movement Limiter", SCRIPT_PARAM_ONOFF, true)
+	hvMenu.move:addParam("info222","", SCRIPT_PARAM_INFO, "")
 	hvMenu.move:addParam("info23","Max Actions Per Second", SCRIPT_PARAM_INFO, "")
 	hvMenu.move:addParam("lhit", "Last Hit", SCRIPT_PARAM_SLICE, 5, 1, 20, 0)
 	hvMenu.move:addParam("lclear", "Lane Clear", SCRIPT_PARAM_SLICE, 5, 1, 20, 0)
@@ -41,14 +48,37 @@ local function IsOnScreen(spot)
 	end
 end
 
+
+local function newEnemy()
+	for i, Enemy in pairs(sEnemies) do
+		if not Enemy.visible then
+			missingEnemy[Enemy.charName] = os.clock()
+		elseif Enemy.visible and missingEnemy[Enemy.charName] ~= 0 then
+			if os.clock() - missingEnemy[Enemy.charName] > 1.5 then
+				missingEnemy[Enemy.charName] = 0
+			end
+		end
+		--print(Enemy.charName.." "..missingEnemy[Enemy.charName])
+	end
+end
+
+function OnTick()
+	if hvMenu.fow then
+		newEnemy()
+	end
+end
+
 _G.ValidTarget = function(object, distance, enemyTeam)
 	local enemyTeam = (enemyTeam ~= false)
-	return object ~= nil and object.valid and object.name and (object.type == myHero.type or object.type:find("obj_AI")) and object.bTargetable and (object.team ~= player.team) == enemyTeam and object.visible and not object.dead and (enemyTeam == false or object.bInvulnerable == 0) and (distance == nil or GetDistanceSqr(object) <= distance * distance) and IsOnScreen(object)
+	if object ~= nil and object.valid and object.name and (object.type == myHero.type or object.type:find("obj_AI")) and object.bTargetable and (object.team ~= player.team) == enemyTeam and object.visible and not object.dead and (enemyTeam == false or object.bInvulnerable == 0) and (distance == nil or GetDistanceSqr(object) <= distance * distance) and IsOnScreen(object) then
+		if hvMenu.fow and object.type == myHero.type and object.team ~= myHero.team and missingEnemy[object.charName] ~= 0 then return end
+		return true
+	end
 end
 
 local lastCommand = 0
 function OnIssueOrder(source, order, position, target)
-	if os.clock() - lastCommand < moveEvery() then
+	if hvMenu.move.enable and os.clock() - lastCommand < moveEvery() then
 		blockMove = true
 		bCount = bCount + 1
 		hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
@@ -385,6 +415,8 @@ local function IsLaneclear()
 		return true
 	elseif norbUsed and _G.NebelwolfisOrbWalker.Config.k.LaneClear then
 		return true
+	elseif pewUsed and _Pewalk.GetActiveMode()["LaneClear"] then
+		return true
 	end
 end
 local function IsLastHit()
@@ -395,6 +427,8 @@ local function IsLastHit()
 	elseif mmaUsed and _G.MMA_IsLastHitting() then
 		return true
 	elseif norbUsed and _G.NebelwolfisOrbWalker.Config.k.LastHit then
+		return true
+	elseif pewUsed and _Pewalk.GetActiveMode()["Farm"] then
 		return true
 	end
 end
@@ -408,6 +442,8 @@ local function IsCombo()
 		return true
 	elseif norbUsed and _G.NebelwolfisOrbWalker.Config.k.Combo then
 		return true
+	elseif pewUsed and _Pewalk.GetActiveMode()["Carry"] then
+		return true
 	end
 end
 local function IsHarass()
@@ -418,6 +454,8 @@ local function IsHarass()
 	elseif mmaUsed and _G.MMA_IsDualCarrying() then
 		return true
 	elseif norbUsed and _G.NebelwolfisOrbWalker.Config.k.Harass then
+		return true
+	elseif pewUsed and _Pewalk.GetActiveMode()["Mixed"] then
 		return true
 	end
 end
@@ -446,6 +484,8 @@ function findOrbwalk()
 		norbUsed = true
 	elseif _G.SxOrb then
 		sxorbUsed = true
+	elseif _Pewalk then
+		pewUsed = true
 	else
 		Print("Orbwalker not supported. Only movement limiter persistant will work.")
 	end
