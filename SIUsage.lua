@@ -1,9 +1,9 @@
 --[[
 Summoner & Item Usage by Ralphlol
-Updated December 20th 2015
+Updated January 27th 2015
 ]]--
 
-local version = 1.17
+local version = 1.18
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
@@ -78,6 +78,7 @@ function OnLoad()
 		[3140]				= "QuicksilverSash",
 		[3143]				= "RanduinsOmen",
 		[3074]				= "ItemTiamatCleave",
+		[5000]				= "ItemTitanicHydraCleave",
 		[3800]				= "ItemRighteousGlory",
 		[2045]				= "ItemGhostWard",
 		[3342]				= "TrinketOrbLvl1",
@@ -125,6 +126,7 @@ function OnLoad()
 		["ENT"]			= { id = 3184, range = 350, target = false},
 		["HYDRA"]		= { id = 3074, range = 350, target = false},
 		["TIAMAT"]		= { id = 3077, range = 350, target = false},
+		["TITANIC"]		= { id = 5000, range = 350, target = false},
 		["RanduinsOmen"]	= { id = 3143, range = 500, target = false},
 		["YGB"]			= { id = 3142, range = 600, target = false},
 	}
@@ -171,13 +173,14 @@ function Menu()
 			if SummonerSlot then
 				MainMenu.cc:addParam("Summoner", "Use Cleanse Summoner", SCRIPT_PARAM_ONOFF, true) 
 			end
-			MainMenu.cc:addParam("delay", "Removal delay (ms)", SCRIPT_PARAM_SLICE, 0, 0, 250, 0)
+			MainMenu.cc:addParam("delay", "Removal delay (ms)", SCRIPT_PARAM_SLICE, 0, 0, 400, 0)
 		MainMenu:addSubMenu("Normal Items/Smite", "nItems")		
 			MainMenu.nItems:addParam("comboItems", "Use Items", SCRIPT_PARAM_ONOFF, true)
-			MainMenu.nItems:addParam("zhon", "Use Zhonyas/Seraphs Before Death", SCRIPT_PARAM_ONOFF, true)
+			
 			MainMenu.nItems:addParam("Key", "Use While Pressed", SCRIPT_PARAM_ONKEYDOWN, false, 32)
 			MainMenu.nItems:addParam("Always", "Use Always", SCRIPT_PARAM_ONOFF, false)
 			MainMenu.nItems:addParam("smite", "Also use champ Smite", SCRIPT_PARAM_ONOFF, true)
+			MainMenu.nItems:addParam("zhon", "Use Zhonyas/Seraphs Before Death", SCRIPT_PARAM_ONOFF, true)
 			MainMenu.nItems:addParam("ItemMe", "If My Health % is Less Than", SCRIPT_PARAM_SLICE, 90, 0, 100, 0) 
 			MainMenu.nItems:addParam("ItemTar", "If Target Health % is Less Than", SCRIPT_PARAM_SLICE, 90, 0, 100, 0)
 			
@@ -310,26 +313,16 @@ end
 function OnUpdateBuff(unit, buff, stacks)
 	if not unit or not buff then return end
 	if unit.isMe then
-		if buff.name:lower():find("flaskofcrystalwater") then
-			potionOnMana = true
-		elseif buff.name:lower():find("regenerationpotion") or buff.name:lower():find("itemminiregenpotion") then
+		if buff.name:lower():find("regenerationpotion") or buff.name:lower():find("itemminiregenpotion") or buff.name:lower():find("crystalflask") then
 			potionOn = true
-		elseif buff.name:lower():find("crystalflask") then
-			potionOn = true
-			potionOnMana = true
 		end
 	end
 end
 function OnRemoveBuff(unit, buff)
 	if not unit or not buff then return end
 	if unit.isMe then
-		if buff.name:lower():find("flaskofcrystalwater") then
-			potionOnMana = false
-		elseif buff.name:lower():find("regenerationpotion") or buff.name:lower():find("itemminiregenpotion") then
-			potionOn = false
-		elseif buff.name:lower():find("crystalflask") then
-			potionOn = false
-			potionOnMana = false
+		if buff.name:lower():find("regenerationpotion") or buff.name:lower():find("itemminiregenpotion") or buff.name:lower():find("crystalflask") then
+			potionOn = true
 		end
 	end
 end
@@ -414,8 +407,43 @@ Buff Types
 30-displacement
 31-disarm
 ]]
+local lastTAttack = 0
+local tDamage = 1
+if AddProcessAttackCallback and heal and MainMenu.heal.enable then
+	AddProcessAttackCallback(function(unit, spell) AProc(unit, spell) end)
+end
+function AProc(unit, spell)
+	if not spell or not unit then return end
+
+	if spell.target and spell.target.type == myHero.type and spell.target.team == myHero.team and (spell.name:lower():find("_turret_chaos") or spell.name:lower():find("_turret_order")) and not (spell.name:lower():find("4") or spell.name:lower():find("3")) then
+		if GetDistance(unit) < 2000 then
+			if clock() - lastTAttack < 1.75 then
+				if tDamage < 1.75 then
+					tDamage = tDamage + 0.375
+				else
+					tDamage = tDamage + 0.250
+					tDamage = tDamage > 2.25 and 2.25 or tDamage
+				end
+			else
+				tDamage = 1
+			end
+			lastTAttack = clock()
+			
+			if myHero:CanUseSpell(heal) == 0 and spell.target.isMe then
+				local realDamage = unit.totalDamage / (((myHero.armor * 0.7) / 100) + 1)
+
+				if vPred:GetPredictedHealth(myHero, 0.5) + myHero.shield <= realDamage * tDamage then
+					DelayAction(function()
+						CastSpell(heal)
+						Print("Saving from tower")
+					end, 0.5)
+				end
+			end
+		end
+	end
+end
 function OnProcessSpell(unit, spell)
-	if heal and MainMenu.heal.enable and spell.target and spell.target.isMe and unit.team ~= myHero.team and unit.type == myHero.type then
+	if heal and MainMenu.heal.enable and myHero:CanUseSpell(heal) == 0 and spell.target and spell.target.isMe and unit.team ~= myHero.team and unit.type == myHero.type then
 		if myHero.health/myHero.maxHealth <= (MainMenu.heal.health/100)*1.5 then
 			CastSpell(heal)
 		end
@@ -511,8 +539,13 @@ function UseItems(unit, scary)
 		local Item = Items[i]
 		if Item.id ~= 3140 and Item.id ~= 3139 then
 			if GetInventoryItemIsCastable(Item.id) and GetDistanceSqr(unit) <= Item.range * Item.range then
-				if Item.id == 3143 or Item.id == 3077 or Item.id == 3074 or Item.id == 3131 or Item.id == 3142 or Item.id == 2140 then
+				if Item.id == 3143 or Item.id == 3077 or Item.id == 3074 or 5000 == Item.id or Item.id == 3131 or Item.id == 3142 or Item.id == 2140 then
 					CastItem(Item.id)
+				--[[elseif Item.id == 3092 then
+					local CastPosition, Hitchance, Position = vPred:GetLineCastPosition(unit, 0.25, 60, Item.range, 1400, myHero, true)
+					if CastPosition and Hitchance >= 2 then
+						CastItem(Item.id, CastPosition.x, CastPosition.z)
+					end]]
 				else
 					CastItem(Item.id, unit) return true
 				end
