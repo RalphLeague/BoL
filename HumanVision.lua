@@ -1,7 +1,7 @@
 local updatedyes = true
 
 _G.HumanVision = true
-local hvversion = 0.51
+local hvversion = 0.52
 
 local blockMove, blockCast
 local lastMessage = 0
@@ -118,8 +118,16 @@ function OnIssueOrder(source, order, position, target)
 	lastCommand = os.clock()
 end
 
+local globalUlt = {["Draven"] = true, ["Ezreal"] = true, ["Jinx"] = true, ["Ashe"] = true}
+local didBlockF = false
 function OnCastSpell(ID, startPos, endPos, target)
-	if ID ~= 13 and not hvMenu[myHero.charName][tostring(ID)] then
+	if ID == 3 and globalUlt[myHero.charName] and IsOnScreen(myHero.pos) then
+		if not didBlockF then
+			didBlockF = Vector(endPos)
+		else
+			didBlockF = false
+		end
+	elseif ID ~= 13 and not hvMenu[myHero.charName][tostring(ID)] then
 		if endPos then
 			if GetDistance(endPos) > 9900 and GetDistance(endPos) < 10000 then return end
 			if not IsOnScreen(endPos) then
@@ -147,6 +155,7 @@ function OnCastSpell(ID, startPos, endPos, target)
 			end
 		end
 	end
+	
 end
 
 function OnWndMsg(msg, key)
@@ -165,7 +174,12 @@ end
 	end]]
 
 function OnSendPacket(p)
-	if blockMove and p.header == 257 then
+	if didBlockF and p.header == 299 then
+		p:Block()
+		local ultSpot = Vector(myHero.x, myHero.y, myHero.z) + (Vector(didBlockF.x, didBlockF.y, didBlockF.z) - Vector(myHero.x, myHero.y, myHero.z)):normalized() * (80 + (math.random()*420))
+		CastSpell(3, ultSpot.x, ultSpot.z)
+	end
+	if blockMove and p.header == 137 then
 		blockMove = false
 		if okMove then okMove = false return end
 		p:Block()
@@ -188,7 +202,7 @@ function OnSendPacket(p)
 		end]]
 	end
 	
-	if p.header == 257 and okMove then
+	if p.header == 137 and okMove then
 		okMove = false
 	end
 end
@@ -320,7 +334,7 @@ function HVScriptUpdate:GetOnlineVersion()
         else
             self.OnlineVersion = (Base64Decode(self.File:sub(ContentStart + 1,ContentEnd-1)))
             self.OnlineVersion = tonumber(self.OnlineVersion)
-            if self.OnlineVersion > self.LocalVersion then
+            if self.OnlineVersion and self.OnlineVersion > self.LocalVersion then
                 if self.CallbackNewVersion and type(self.CallbackNewVersion) == 'function' then
                     self.CallbackNewVersion(self.OnlineVersion,self.LocalVersion)
                 end
@@ -487,6 +501,6 @@ function findOrbwalk()
 	elseif _Pewalk then
 		pewUsed = true
 	else
-		Print("Orbwalker not supported. Only movement limiter persistant will work.")
+		Print("Orbwalker not found. Only movement limiter persistant will work.")
 	end
 end
