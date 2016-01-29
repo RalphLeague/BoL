@@ -1,9 +1,9 @@
 --[[
 Summoner & Item Usage by Ralphlol
-Updated January 27th 2015
+Updated January 29th 2015
 ]]--
 
-local version = 1.18
+local version = 1.19
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
@@ -322,7 +322,7 @@ function OnRemoveBuff(unit, buff)
 	if not unit or not buff then return end
 	if unit.isMe then
 		if buff.name:lower():find("regenerationpotion") or buff.name:lower():find("itemminiregenpotion") or buff.name:lower():find("crystalflask") then
-			potionOn = true
+			potionOn = false
 		end
 	end
 end
@@ -502,7 +502,7 @@ function CountEnemiesNearUnitReg(unit, range)
 end
 
 function UseItemsCC(unit, scary)
-	if lastRemove > os.clock() - 1 then return end
+	if os.clock() - lastRemove < 1 then return end
 	for i, Item in pairs(Items) do
 		local Item = Items[i]
 		if GetInventoryItemIsCastable(Item.id) and GetDistanceSqr(unit) <= Item.range * Item.range then
