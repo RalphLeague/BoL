@@ -1,29 +1,30 @@
---Version 0.1
+--Version 0.11
 --Library for Machine Series by Ralphlol
 
 class 'MachineLib'
 function MachineLib:__init()
-	self.version = 0.1
+	self.version = 0.11
 	
 	self.lolPatch = GetGameVersion and GetGameVersion():sub(1,3) == "6.2" and 1 or 2
 	self.notPresentPatch = GetGameVersion and GetGameVersion():sub(1,3) ~= "6.1" and GetGameVersion():sub(1,3) ~= "6.2"
 	self.cn = self.notPresentPatch  
-	self.moveHeader = 137
-	self.spellHeader = 299
+	self.moveHeader = self.lolPatch == 1 and 137 or 197
+	self.spellHeader = self.lolPatch == 1 and 299 or 126
 	
 	self:Level()
 end
 
 function MachineLib:SkinChange(what)
 	if self.cn then return end
+	
 	if self.lolPatch == 1 then
 		if SetSkin then
-			local skinPB = what -2
+			local skinPB = what - 2
 			SetSkin(myHero, skinPB)
 		end
 	else
 		if SetSkin then
-			local skinPB = what -2
+			local skinPB = what - 2
 			SetSkin(myHero, skinPB)
 		end
 	end
