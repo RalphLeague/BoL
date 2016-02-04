@@ -1,7 +1,7 @@
 local updatedyes = true
 
 _G.HumanVision = true
-local hvversion = 0.52
+local hvversion = 0.6
 
 local blockMove, blockCast
 local lastMessage = 0
@@ -58,7 +58,6 @@ local function newEnemy()
 				missingEnemy[Enemy.charName] = 0
 			end
 		end
-		--print(Enemy.charName.." "..missingEnemy[Enemy.charName])
 	end
 end
 
@@ -87,9 +86,6 @@ function OnIssueOrder(source, order, position, target)
 		if not IsOnScreen(position) then
 			if okMove then okMove = false return end
 			blockMove = true
-
-			--BlockOrder()
-			
 			bCount = bCount + 1
 			hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
 			if hvMenu.msg and os.clock() - lastMessage > 1.5 then
@@ -102,9 +98,6 @@ function OnIssueOrder(source, order, position, target)
 		if not IsOnScreen(target) then
 			if okMove then okMove = false return end
 			blockMove = true
-
-			--BlockOrder()
-			
 			bCount = bCount + 1
 			hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
 			if hvMenu.msg and os.clock() - lastMessage > 1.5 then
@@ -120,42 +113,54 @@ end
 
 local globalUlt = {["Draven"] = true, ["Ezreal"] = true, ["Jinx"] = true, ["Ashe"] = true}
 local didBlockF = false
-function OnCastSpell(ID, startPos, endPos, target)
-	if ID == 3 and globalUlt[myHero.charName] and IsOnScreen(myHero.pos) then
-		if not didBlockF then
-			didBlockF = Vector(endPos)
-		else
-			didBlockF = false
-		end
-	elseif ID ~= 13 and not hvMenu[myHero.charName][tostring(ID)] then
-		if endPos then
-			if GetDistance(endPos) > 9900 and GetDistance(endPos) < 10000 then return end
-			if not IsOnScreen(endPos) then
-				blockCast = true
-				BlockSpell()
-				
-				bCount = bCount + 1
-				hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
-				if hvMenu.msg and os.clock() - lastMessage > 1.5 then
-					Print("Blocked cast")
-					lastMessage = os.clock()
-				end
-			end
-		elseif target then
-			if not IsOnScreen(target) then
-				blockCast = true
-				BlockSpell()
-				
-				bCount = bCount + 1
-				hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
-				if hvMenu.msg and os.clock() - lastMessage > 1.5 then
-					Print("Blocked cast")
-					lastMessage = os.clock()
+local originalCastSpell = _G.CastSpell
+local posX, posZ
+
+_G.CastSpell = function(ID, param2, param3)
+	if param3 and param2 then
+		local endPos = Vector(param2, myHero.y, param3)
+		if ID == 3 and globalUlt[myHero.charName] and IsOnScreen(myHero.pos) then
+			local ultSpot = Vector(myHero.x, myHero.y, myHero.z) + (Vector(param2, myHero.y, param3) - Vector(myHero.x, myHero.y, myHero.z)):normalized() * (80 + (math.random()*420))
+			param2, param3 = ultSpot.x, ultSpot.z
+		elseif ID ~= 13 and not hvMenu[myHero.charName][tostring(ID)] then
+			if endPos then
+				if GetDistance(endPos) > 9900 and GetDistance(endPos) < 10000 then 
+					--Print("Ok cast")
+				elseif not IsOnScreen(endPos) then
+					--local Spot = Vector(myHero.x, myHero.y, myHero.z) + (Vector(param2, myHero.y, param3) - Vector(myHero.x, myHero.y, myHero.z)):normalized() * (80 + (math.random()*420))
+					--param2, param3 = Spot.x, Spot.z
+					
+					bCount = bCount + 1
+					hvMenu:modifyParam("info22", "text", "Total Commands Altered: "..bCount)
+					if hvMenu.msg and os.clock() - lastMessage > 1.5 then
+						Print("Blocked cast")
+						lastMessage = os.clock()
+					end
+					return
 				end
 			end
 		end
+	--[[elseif param2 then
+		if ID ~= 13 and not hvMenu[myHero.charName][tostring(ID)] then
+		if not IsOnScreen(param2) then
+			
+			
+			bCount = bCount + 1
+			hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
+			if hvMenu.msg and os.clock() - lastMessage > 1.5 then
+				Print("Blocked cast")
+				lastMessage = os.clock()
+			end
+			return
+		end]]
 	end
-	
+	if param3 and param2 then
+		originalCastSpell(ID, param2, param3)
+	elseif param2 then
+		originalCastSpell(ID, param2)
+	else
+		originalCastSpell(ID)
+	end
 end
 
 function OnWndMsg(msg, key)
@@ -163,22 +168,8 @@ function OnWndMsg(msg, key)
         okMove = true
     end
 end
-	--[[local t = myHero
-	if t then
-		for i=1, p.size do
-		  p.pos=i
-			if p:DecodeF() == t.networkID then
-				print(DumpPacket(p))
-			end
-		end
-	end]]
 
 function OnSendPacket(p)
-	if didBlockF and p.header == 299 then
-		p:Block()
-		local ultSpot = Vector(myHero.x, myHero.y, myHero.z) + (Vector(didBlockF.x, didBlockF.y, didBlockF.z) - Vector(myHero.x, myHero.y, myHero.z)):normalized() * (80 + (math.random()*420))
-		CastSpell(3, ultSpot.x, ultSpot.z)
-	end
 	if blockMove and p.header == 137 then
 		blockMove = false
 		if okMove then okMove = false return end
@@ -190,16 +181,6 @@ function OnSendPacket(p)
 			Print("Blocked move")
 			lastMessage = os.clock()
 		end
-	--[[elseif  blockCast and p.header == 0xA6 then
-		p:Block()
-		blockCast = false
-		
-		bCount = bCount + 1
-		hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
-		if hvMenu.msg and os.clock() - lastMessage > 1.5 then
-			Print("Blocked cast")
-			lastMessage = os.clock()
-		end]]
 	end
 	
 	if p.header == 137 and okMove then
