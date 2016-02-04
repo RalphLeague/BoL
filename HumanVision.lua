@@ -222,7 +222,6 @@ local function IsCombo()
 	elseif sxorbUsed and SxOrb.isFight then
 		return true
 	elseif mmaUsed and _G.MMA_IsOrbwalking() then
-		--print("combo")
 		return true
 	elseif norbUsed and _G.NebelwolfisOrbWalker.Config.k.Combo then
 		return true
