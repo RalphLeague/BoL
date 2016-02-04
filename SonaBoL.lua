@@ -1,5 +1,5 @@
 if myHero.charName ~= "Sona" then return end
-local version = "1.02"
+local version = "1.03"
 local enemyHeroes = GetEnemyHeroes()
 
 function OnLoad()
@@ -51,15 +51,11 @@ Sona = scriptConfig("Poke Machine Sona", "SonaLOL")
 		Sona.Sett:addParam("info22","General Settings", SCRIPT_PARAM_INFO, "")
 		Sona.Sett:addParam("Debug", "Debug", SCRIPT_PARAM_ONOFF, false)
 		Sona.Sett:addParam("info22","", SCRIPT_PARAM_INFO, "")
-		Sona.Sett:addParam("info22","Item Settings", SCRIPT_PARAM_INFO, "")
-		Sona.Sett:addParam("Item", "Use Frost Queen's Claim In Combo", SCRIPT_PARAM_ONOFF, true)
-		Sona.Sett:addParam("ItemMe", "Use item if my health % is < ", SCRIPT_PARAM_SLICE, 70, 0, 100, 1)
-		Sona.Sett:addParam("ItemTar", "Use item if enemy health % % is < ", SCRIPT_PARAM_SLICE, 70, 0, 100, 1)
-		Sona.Sett:addParam("info22","", SCRIPT_PARAM_INFO, "")
 		Sona.Sett:addParam("info22", "Harass Settings", SCRIPT_PARAM_INFO, "")
 		Sona.Sett:addParam("HarassMana", "Do not use Q if mana % is < ", SCRIPT_PARAM_SLICE, 30, 0, 100, 1)
 		Sona.Sett:addParam("WMana", "Do not use W if mana % is < ", SCRIPT_PARAM_SLICE, 20, 0, 100, 1)
 		Sona.Sett:addParam("WH", "Heal if attacked and health <", SCRIPT_PARAM_SLICE, 70, 0, 100, 1)
+		Sona.Sett:addParam("fast", "Get to lane faster", SCRIPT_PARAM_ONOFF, true)
 	
 	Sona:addSubMenu("Drawings","Draws")
 		Sona.Draws:addParam("AA", "Draw AA Range", SCRIPT_PARAM_ONOFF, true)	
@@ -70,6 +66,7 @@ Sona = scriptConfig("Poke Machine Sona", "SonaLOL")
 	Sona:addSubMenu("Key Bindings","Binds")
 		Sona.Binds:addParam("Combo", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
 		Sona.Binds:addParam("Panic", "Panic Ult", SCRIPT_PARAM_ONKEYDOWN, false, GetKey("T"))
+		Sona.Binds:addParam("Flee", "Flee Key", SCRIPT_PARAM_ONKEYDOWN, false, GetKey("G"))
 		Sona.Binds:addParam("Harass", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, GetKey("C"))
 		if exhaust then	
 			Sona.Binds:addParam("exh", "Exhaust", SCRIPT_PARAM_ONKEYDOWN, false, exhaust.key)
@@ -98,6 +95,19 @@ function PopUp()
 	ScriptPrint("Panic Ult Key will ult the highest priority target in range. Great for flash ulting or getting an assassin that pops out.")
 end
 
+function OnNewPath(unit, startPos, endPos, isDash, dashSpeed, dashGravity, dashDistance)
+	if unit.isMe and Sona.Sett.fast then
+		DelayAction(function()
+			if SpellEready and GetInGameTimer() < 1400 then
+				if InFountain() and GetDistance(myHero.endPath) > 2000 then
+					CastSpell(2)
+				elseif GetGame().map.shortName == "summonerRift" and GetDistance(basePos[myHero.team]) < 2000 and GetDistance(myHero.endPath) > 4000 then
+					CastSpell(2)
+				end
+			end
+		end, 1)
+	end
+end
 function Variables()
 	SpellQ = { range = 845, delay = 0.02, speed = 1500, width =  nil, ready = false, pos = nil, dmg = 0 }
 	SpellR = { range =  1000, delay = 0.1, speed = 2400, width = 140, ready = false, pos = nil, dmg = 0 }
@@ -112,7 +122,10 @@ end
 function tickChecks()
 	AARange = myHero.range + myHero.boundingRadius
 	SpellQ.ready = (myHero:CanUseSpell(0) == 0)
+	SpellWready  = (myHero:CanUseSpell(1) == 0)
+	SpellEready  = (myHero:CanUseSpell(2) == 0)
 	SpellR.ready = (myHero:CanUseSpell(3) == 0)
+	
 	if exhaust ~= nil then
 		if exhaust.slot ~= nil  then
 			exhaust.ready = (myHero:CanUseSpell(exhaust.slot) == 0)
@@ -132,6 +145,7 @@ function checkPressed()
 	elseif Sona.Binds.Harass then
 		Harass(qTarget)
 	end
+	Flee()
 	if exhaust then
 		if Sona.Binds.exh then 		
 			exhFunction(eTarget)
@@ -177,17 +191,18 @@ function Combo(unit) --sbtw
 		Attack(GetTarget(AARange+65))
 		CastR(unit, Sona.comboMinEnemies)		
 		CastQ(qTarget)
+	end
+end
 
-		if Sona.Sett.Item then
-			--local slot = CheckItem("itemglacialspikecast")
-			if slot and qTarget and not qTarget.dead and qTarget.visible then
-				if qTarget.health / qTarget.maxHealth <  Sona.Sett.ItemTar / 100 then
-					if myHero.health / myHero.maxHealth <  Sona.Sett.ItemMe / 100 then
-						CastSpell(slot, qTarget.pos.x, qTarget.pos.z)
-					end
-				end	
-			end	
+function Flee()
+	if Sona.Binds.Flee then
+		if SpellEready then
+			CastSpell(2)
 		end
+		local slot = CheckItem("itemwraithcollar")
+		if slot then
+			CastSpell(slot)
+		end	
 	end
 end
 function CheckItem(ItemName)
@@ -317,11 +332,11 @@ function OnProcessSpell(unit, spell)
 		end
 	end
 	if spell.target and spell.target == myHero and unit.team ~= myHero.team then
-		if (myHero.mana/myHero.maxMana)*100  < tonumber(Sona.Sett.WMana) or  (myHero.health/myHero.maxHealth)*100  > tonumber(Sona.Sett.WH)then
+		if not SpellWready or (myHero.mana/myHero.maxMana)*100  < tonumber(Sona.Sett.WMana) or  (myHero.health/myHero.maxHealth)*100  > tonumber(Sona.Sett.WH)then
 			return false
 		end
 		if Sona.Binds.Combo or Sona.Binds.Harass then
-			if myHero.health/myHero.maxHealth < 0.7 and d(unit.pos, myHero.pos) < 850 then
+			if myHero.health/myHero.maxHealth < 0.8 and d(unit.pos, myHero.pos) < 850 then
 				CastSpell(1)
 			end
 		end
