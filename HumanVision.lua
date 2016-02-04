@@ -209,6 +209,92 @@ function OnLoad()
 	DelayAction(findOrbwalk, 15)
 end
 
+
+local function IsLaneclear()
+	if sacUsed and _G.AutoCarry.Keys.LaneClear then
+		return true
+	elseif sxorbUsed and SxOrb.isLaneClear then
+		return true
+	elseif mmaUsed and _G.MMA_IsLaneClearing() then
+		return true
+	elseif norbUsed and _G.NebelwolfisOrbWalker.Config.k.LaneClear then
+		return true
+	elseif pewUsed and _Pewalk.GetActiveMode()["LaneClear"] then
+		return true
+	end
+end
+local function IsLastHit()
+	if sacUsed and _G.AutoCarry.Keys.LastHit then
+		return true
+	elseif sxorbUsed and SxOrb.isLastHit then
+		return true
+	elseif mmaUsed and _G.MMA_IsLastHitting() then
+		return true
+	elseif norbUsed and _G.NebelwolfisOrbWalker.Config.k.LastHit then
+		return true
+	elseif pewUsed and _Pewalk.GetActiveMode()["Farm"] then
+		return true
+	end
+end
+local function IsCombo()
+	if sacUsed and _G.AutoCarry.Keys.AutoCarry then
+		return true
+	elseif sxorbUsed and SxOrb.isFight then
+		return true
+	elseif mmaUsed and _G.MMA_IsOrbwalking() then
+		--print("combo")
+		return true
+	elseif norbUsed and _G.NebelwolfisOrbWalker.Config.k.Combo then
+		return true
+	elseif pewUsed and _Pewalk.GetActiveMode()["Carry"] then
+		return true
+	end
+end
+local function IsHarass()
+	if sacUsed and _G.AutoCarry.Keys.MixedMode then
+		return true
+	elseif sxorbUsed and SxOrb.isHarass then
+		return true
+	elseif mmaUsed and _G.MMA_IsDualCarrying() then
+		return true
+	elseif norbUsed and _G.NebelwolfisOrbWalker.Config.k.Harass then
+		return true
+	elseif pewUsed and _Pewalk.GetActiveMode()["Mixed"] then
+		return true
+	end
+end
+
+function moveEvery()
+	if IsCombo() then
+		return 1 / hvMenu.move.combo
+	elseif IsLastHit() then
+		return 1 / hvMenu.move.lhit
+	elseif IsHarass() then
+		return 1 / hvMenu.move.harass
+	elseif IsLaneclear() then
+		return 1 / hvMenu.move.lclear
+	else
+		return 1 / hvMenu.move.perm 
+	end
+end
+function findOrbwalk()
+	 if _G.Reborn_Loaded and not _G.Reborn_Initialised then
+        DelayAction(CheckOrbwalk, 1)
+    elseif _G.Reborn_Initialised then
+        sacUsed = true
+    elseif _G.MMA_IsLoaded then
+		mmaUsed = true
+	elseif _G.NebelwolfisOrbWalkerLoaded then
+		norbUsed = true
+	elseif _G.SxOrb then
+		sxorbUsed = true
+	elseif _Pewalk then
+		pewUsed = true
+	else
+		Print("Orbwalker not found. Only movement limiter persistant will work.")
+	end
+end
+
 class "HVScriptUpdate"
 function HVScriptUpdate:__init(LocalVersion,UseHttps, Host, VersionPath, ScriptPath, SavePath, CallbackUpdate, CallbackNoUpdate, CallbackNewVersion,CallbackError)
     self.LocalVersion = LocalVersion
@@ -399,89 +485,4 @@ function HVScriptUpdate:DownloadUpdate()
         self.GotHVScriptUpdate = true
     end
 end
-end
-
-local function IsLaneclear()
-	if sacUsed and _G.AutoCarry.Keys.LaneClear then
-		return true
-	elseif sxorbUsed and SxOrb.isLaneClear then
-		return true
-	elseif mmaUsed and _G.MMA_IsLaneClearing() then
-		return true
-	elseif norbUsed and _G.NebelwolfisOrbWalker.Config.k.LaneClear then
-		return true
-	elseif pewUsed and _Pewalk.GetActiveMode()["LaneClear"] then
-		return true
-	end
-end
-local function IsLastHit()
-	if sacUsed and _G.AutoCarry.Keys.LastHit then
-		return true
-	elseif sxorbUsed and SxOrb.isLastHit then
-		return true
-	elseif mmaUsed and _G.MMA_IsLastHitting() then
-		return true
-	elseif norbUsed and _G.NebelwolfisOrbWalker.Config.k.LastHit then
-		return true
-	elseif pewUsed and _Pewalk.GetActiveMode()["Farm"] then
-		return true
-	end
-end
-local function IsCombo()
-	if sacUsed and _G.AutoCarry.Keys.AutoCarry then
-		return true
-	elseif sxorbUsed and SxOrb.isFight then
-		return true
-	elseif mmaUsed and _G.MMA_IsOrbwalking() then
-		--print("combo")
-		return true
-	elseif norbUsed and _G.NebelwolfisOrbWalker.Config.k.Combo then
-		return true
-	elseif pewUsed and _Pewalk.GetActiveMode()["Carry"] then
-		return true
-	end
-end
-local function IsHarass()
-	if sacUsed and _G.AutoCarry.Keys.MixedMode then
-		return true
-	elseif sxorbUsed and SxOrb.isHarass then
-		return true
-	elseif mmaUsed and _G.MMA_IsDualCarrying() then
-		return true
-	elseif norbUsed and _G.NebelwolfisOrbWalker.Config.k.Harass then
-		return true
-	elseif pewUsed and _Pewalk.GetActiveMode()["Mixed"] then
-		return true
-	end
-end
-
-function moveEvery()
-	if IsCombo() then
-		return 1 / hvMenu.move.combo
-	elseif IsLastHit() then
-		return 1 / hvMenu.move.lhit
-	elseif IsHarass() then
-		return 1 / hvMenu.move.harass
-	elseif IsLaneclear() then
-		return 1 / hvMenu.move.lclear
-	else
-		return 1 / hvMenu.move.perm 
-	end
-end
-function findOrbwalk()
-	 if _G.Reborn_Loaded and not _G.Reborn_Initialised then
-        DelayAction(CheckOrbwalk, 1)
-    elseif _G.Reborn_Initialised then
-        sacUsed = true
-    elseif _G.MMA_IsLoaded then
-		mmaUsed = true
-	elseif _G.NebelwolfisOrbWalkerLoaded then
-		norbUsed = true
-	elseif _G.SxOrb then
-		sxorbUsed = true
-	elseif _Pewalk then
-		pewUsed = true
-	else
-		Print("Orbwalker not found. Only movement limiter persistant will work.")
-	end
 end
