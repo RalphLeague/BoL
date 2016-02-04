@@ -188,28 +188,6 @@ function OnSendPacket(p)
 	end
 end
 
----SxUPDATER--
-do
-function OnLoad()
-    local ToUpdate = {}
-    ToUpdate.Version = hvversion
-    ToUpdate.UseHttps = true
-    ToUpdate.Host = "raw.githubusercontent.com"
-    ToUpdate.VersionPath = "/RalphLeague/BoL/master/HumanVision.version"
-    ToUpdate.ScriptPath =  "/RalphLeague/BoL/master/HumanVision.lua"
-    ToUpdate.SavePath = SCRIPT_PATH.._ENV.FILE_NAME
-    ToUpdate.CallbackUpdate = function(NewVersion,OldVersion) Print("Updated to v"..NewVersion) end
-    ToUpdate.CallbackNoUpdate = function(OldVersion) Print(" Version "..ToUpdate.Version.." Loaded") end
-    ToUpdate.CallbackNewVersion = function(NewVersion) Print("New Version found ("..NewVersion.."). Please wait until its downloaded") end
-    ToUpdate.CallbackError = function(NewVersion) Print("Error while Downloading. Please try again.") end
-	if updatedyes then
-		HVScriptUpdate(ToUpdate.Version,ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
-	end
-	
-	DelayAction(findOrbwalk, 15)
-end
-
-
 local function IsLaneclear()
 	if sacUsed and _G.AutoCarry.Keys.LaneClear then
 		return true
@@ -223,6 +201,7 @@ local function IsLaneclear()
 		return true
 	end
 end
+
 local function IsLastHit()
 	if sacUsed and _G.AutoCarry.Keys.LastHit then
 		return true
@@ -236,6 +215,7 @@ local function IsLastHit()
 		return true
 	end
 end
+
 local function IsCombo()
 	if sacUsed and _G.AutoCarry.Keys.AutoCarry then
 		return true
@@ -250,6 +230,7 @@ local function IsCombo()
 		return true
 	end
 end
+
 local function IsHarass()
 	if sacUsed and _G.AutoCarry.Keys.MixedMode then
 		return true
@@ -277,6 +258,7 @@ function moveEvery()
 		return 1 / hvMenu.move.perm 
 	end
 end
+
 function findOrbwalk()
 	 if _G.Reborn_Loaded and not _G.Reborn_Initialised then
         DelayAction(CheckOrbwalk, 1)
@@ -293,6 +275,27 @@ function findOrbwalk()
 	else
 		Print("Orbwalker not found. Only movement limiter persistant will work.")
 	end
+end
+
+---SxUPDATER--
+do
+function OnLoad()
+    local ToUpdate = {}
+    ToUpdate.Version = hvversion
+    ToUpdate.UseHttps = true
+    ToUpdate.Host = "raw.githubusercontent.com"
+    ToUpdate.VersionPath = "/RalphLeague/BoL/master/HumanVision.version"
+    ToUpdate.ScriptPath =  "/RalphLeague/BoL/master/HumanVision.lua"
+    ToUpdate.SavePath = SCRIPT_PATH.._ENV.FILE_NAME
+    ToUpdate.CallbackUpdate = function(NewVersion,OldVersion) Print("Updated to v"..NewVersion) end
+    ToUpdate.CallbackNoUpdate = function(OldVersion) Print(" Version "..ToUpdate.Version.." Loaded") end
+    ToUpdate.CallbackNewVersion = function(NewVersion) Print("New Version found ("..NewVersion.."). Please wait until its downloaded") end
+    ToUpdate.CallbackError = function(NewVersion) Print("Error while Downloading. Please try again.") end
+	if updatedyes then
+		HVScriptUpdate(ToUpdate.Version,ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
+	end
+	
+	DelayAction(findOrbwalk, 15)
 end
 
 class "HVScriptUpdate"
