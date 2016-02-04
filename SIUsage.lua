@@ -1,9 +1,9 @@
 --[[
 Summoner & Item Usage by Ralphlol
-Updated January 29th 2015
+Updated February 4th 2015
 ]]--
 
-local version = 1.19
+local version = 1.2
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
@@ -234,7 +234,7 @@ function OnTick()
 		Zhonya()
 	end
 	if heal then
-		if ValidTarget(GetCustomTarget(), 750) then
+		if ValidTarget(GetCustomTarget(), 1000) then
 			if MainMenu.heal.enable and myHero:CanUseSpell(heal) == 0 then
 				if myHero.level > 5 and myHero.health/myHero.maxHealth < MainMenu.heal.health/100 then
 					CastSpell(heal)
@@ -576,7 +576,7 @@ function HealSlot()
 	end
 	if myHero:GetSpellData(SUMMONER_1).name:find("summonerheal")  or myHero:GetSpellData(SUMMONER_1).name:find("summonerbar") then
 		return SUMMONER_1
-	elseif myHero:GetSpellData(SUMMONER_2).name:find("summonerheal") or myHero:GetSpellData(SUMMONER_1).name:find("summonerbar") then
+	elseif myHero:GetSpellData(SUMMONER_2).name:find("summonerheal") or myHero:GetSpellData(SUMMONER_2).name:find("summonerbar") then
 		return SUMMONER_2
 	end
 end
