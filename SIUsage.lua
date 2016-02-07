@@ -3,7 +3,7 @@ Summoner & Item Usage by Ralphlol
 Updated February 4th 2015
 ]]--
 
-local version = 1.21
+local version = 1.22
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
@@ -33,7 +33,7 @@ function OnLoad()
     ToUpdate.CallbackNoUpdate = function(OldVersion) Print("No Updates Found") end
     ToUpdate.CallbackNewVersion = function(NewVersion) Print("New Version found ("..NewVersion.."). Please wait until its downloaded") end
     ToUpdate.CallbackError = function(NewVersion) Print("Error while Downloading. Please try again.") end
-    SxScriptUpdate(ToUpdate.Version,ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
+    SIUsage_Update(ToUpdate.Version,ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
 
 	ItemNames				= {
 		[3303]				= "ArchAngelsDummySpell",
@@ -371,7 +371,7 @@ function GetSlotItemFromName(itemname)
 	local slot
 	for i = 6, 12 do
 		local item = myHero:GetSpellData(i).name
-		if item and item:lower():find(itemname:lower()) and myHero:CanUseSpell(slot) == READY then
+		if item and item:lower():find(itemname:lower()) and myHero:CanUseSpell(i) == READY then
 			slot = i
 		end
 	end
@@ -658,8 +658,8 @@ function amIFleeing(target, range)
 	return false
 end
 
-class "SxScriptUpdate"
-function SxScriptUpdate:__init(LocalVersion,UseHttps, Host, VersionPath, ScriptPath, SavePath, CallbackUpdate, CallbackNoUpdate, CallbackNewVersion,CallbackError)
+class "SIUsage_Update"
+function SIUsage_Update:__init(LocalVersion,UseHttps, Host, VersionPath, ScriptPath, SavePath, CallbackUpdate, CallbackNoUpdate, CallbackNewVersion,CallbackError)
     self.LocalVersion = LocalVersion
     self.Host = Host
     self.VersionPath = '/BoL/TCPUpdater/GetScript'..(UseHttps and '5' or '6')..'.php?script='..self:Base64Encode(self.Host..VersionPath)..'&rand='..math.random(99999999)
@@ -675,17 +675,17 @@ function SxScriptUpdate:__init(LocalVersion,UseHttps, Host, VersionPath, ScriptP
     AddTickCallback(function() self:GetOnlineVersion() end)
 end
 
-function SxScriptUpdate:print(str)
+function SIUsage_Update:print(str)
     print('<font color="#FFFFFF">'..os.clock()..': '..str)
 end
 
-function SxScriptUpdate:OnDraw()
+function SIUsage_Update:OnDraw()
     if self.DownloadStatus ~= 'Downloading Script (100%)' and self.DownloadStatus ~= 'Downloading VersionInfo (100%)'then
         DrawText('Download Status: '..(self.DownloadStatus or 'Unknown'),50,10,50,ARGB(0xFF,0xFF,0xFF,0xFF))
     end
 end
 
-function SxScriptUpdate:CreateSocket(url)
+function SIUsage_Update:CreateSocket(url)
     if not self.LuaSocket then
         self.LuaSocket = require("socket")
     else
@@ -705,7 +705,7 @@ function SxScriptUpdate:CreateSocket(url)
     self.File = ""
 end
 
-function SxScriptUpdate:Base64Encode(data)
+function SIUsage_Update:Base64Encode(data)
     local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
     return ((data:gsub('.', function(x)
         local r,b='',x:byte()
@@ -719,7 +719,7 @@ function SxScriptUpdate:Base64Encode(data)
     end)..({ '', '==', '=' })[#data%3+1])
 end
 
-function SxScriptUpdate:GetOnlineVersion()
+function SIUsage_Update:GetOnlineVersion()
     if self.GotScriptVersion then return end
 
     self.Receive, self.Status, self.Snipped = self.Socket:receive(1024)
@@ -781,8 +781,8 @@ function SxScriptUpdate:GetOnlineVersion()
     end
 end
 
-function SxScriptUpdate:DownloadUpdate()
-    if self.GotSxScriptUpdate then return end
+function SIUsage_Update:DownloadUpdate()
+    if self.GotSIUsage_Update then return end
     self.Receive, self.Status, self.Snipped = self.Socket:receive(1024)
     if self.Status == 'timeout' and not self.Started then
         self.Started = true
@@ -845,7 +845,7 @@ function SxScriptUpdate:DownloadUpdate()
                 end
             end
         end
-        self.GotSxScriptUpdate = true
+        self.GotSIUsage_Update = true
     end
 end
 
