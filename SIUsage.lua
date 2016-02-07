@@ -3,7 +3,7 @@ Summoner & Item Usage by Ralphlol
 Updated February 4th 2015
 ]]--
 
-local version = 1.2
+local version = 1.21
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
@@ -141,7 +141,7 @@ function OnLoad()
 	ignite = Slot("summonerdot")
 	heal = HealSlot()
 	
-	Menu()
+	ItemMenu()
 	Debug = false
 	TargetSelector = TargetSelector(TARGET_LESS_CAST_PRIORITY, 1250, DAMAGE_MAGIC)
 end
@@ -155,7 +155,7 @@ function GetCustomTarget()
 	end
 end
 
-function Menu()
+function ItemMenu()
 	MainMenu = scriptConfig("Summoner & Item Usage", "SIUSE")
 		MainMenu:addSubMenu("Health Potions", "potion")
 			MainMenu.potion:addParam("Key", "Use While Pressed", SCRIPT_PARAM_ONKEYDOWN, false, 32)
@@ -275,6 +275,7 @@ function OnTick()
 		AutoIgnite()
 	end
 end
+
 function Zhonya()	
 	local h = myHero.health/myHero.maxHealth
 	if myHero.level > 5 and h < .15 then
@@ -283,6 +284,7 @@ function Zhonya()
 		CastZhonya()
 	end
 end
+
 function CastZhonya()
 	local item = CheckItem("zhonyashourglass")
 	if item and myHero:CanUseSpell(item) == 0 then
@@ -293,6 +295,7 @@ function CastZhonya()
 		CastItem(3040)
 	end
 end
+
 function CheckItem(ItemName)
 	for i = 6, 12 do
 		local item = myHero:GetSpellData(i).name
@@ -301,10 +304,12 @@ function CheckItem(ItemName)
 		end
 	end
 end
+
 function exhFunction(unit)
 	moveToCursor()
 	CastSpell(exhaust.slot, unit)
 end
+
 function moveToCursor()
 	local MouseMove = Vector(myHero) + (Vector(mousePos) - Vector(myHero)):normalized() * 500
 	myHero:MoveTo(MouseMove.x, MouseMove.z)	
@@ -318,6 +323,7 @@ function OnUpdateBuff(unit, buff, stacks)
 		end
 	end
 end
+
 function OnRemoveBuff(unit, buff)
 	if not unit or not buff then return end
 	if unit.isMe then
@@ -326,13 +332,14 @@ function OnRemoveBuff(unit, buff)
 		end
 	end
 end
+
 local lastPotion = 0
 function UsePotion()
+	if os.clock() - lastPotion < 8 then return end
 	if not MainMenu.potion.enemy then
 		if CountEnemiesNearUnitReg(myHero, 750) == 0 then return end
 	end
 	
-	if os.clock() - lastPotion < 8 then return end
 	local slot = GetSlotItemFromName("crystalflask")
 	if not slot then
 		slot = GetSlotItemFromName("RegenerationPotion")
@@ -345,6 +352,7 @@ function UsePotion()
 		lastPotion = os.clock()
 	end
 end
+
 local lastPotionMana = 0
 function UsePotionMana()
 	if CountEnemiesNearUnitReg(myHero, 1000) == 0 then return end
@@ -358,16 +366,18 @@ function UsePotionMana()
 		lastPotionMana = os.clock()
 	end
 end
+
 function GetSlotItemFromName(itemname)
 	local slot
 	for i = 6, 12 do
 		local item = myHero:GetSpellData(i).name
-		if ((#item > 0) and (item:lower():find(itemname:lower()))) then
+		if item and item:lower():find(itemname:lower()) and myHero:CanUseSpell(slot) == READY then
 			slot = i
 		end
 	end
 	return slot
 end
+
 function GetSlotItem(id, unit)
 	unit = unit or myHero
 
@@ -379,7 +389,7 @@ function GetSlotItem(id, unit)
 	
 	for slot = ITEM_1, ITEM_7 do
 		local item = unit:GetSpellData(slot).name
-		if ((#item > 0) and (item:lower() == name:lower())) then
+		if item and item:lower() == name:lower() and myHero:CanUseSpell(slot) == READY then
 			return slot
 		end
 	end
@@ -412,6 +422,7 @@ local tDamage = 1
 if AddProcessAttackCallback and heal and MainMenu.heal.enable then
 	AddProcessAttackCallback(function(unit, spell) AProc(unit, spell) end)
 end
+
 function AProc(unit, spell)
 	if not spell or not unit then return end
 
