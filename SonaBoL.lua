@@ -1,6 +1,7 @@
 if myHero.charName ~= "Sona" then return end
-local version = "1.03"
+local version = "1.04"
 local enemyHeroes = GetEnemyHeroes()
+local basePos = {[100] = Vector(2088, 0, 2222), [200] = Vector(12759, 0, 12861)}
 
 function OnLoad()
 	Variables()
