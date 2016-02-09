@@ -1,9 +1,9 @@
-_G.Model_Version = 1.32
+_G.Model_Version = 1.33
 timeran = os.clock()
 function Print(message) print("<font color=\"#0000E5\"> Model Changer:</font> <font color=\"#FFFFFF\">" .. message) end
 
 ModelNames = {
-	"      OFF",
+	"OFF",
 	"Cupcake",
 	"New Dragon",
 	"Poro", 
@@ -32,7 +32,13 @@ ModelNames = {
 	"Mega Poro",
 	--"Turret",
 	"Duckie",
-	"Dragon"
+	"Dragon",
+	"Ship",
+	"Rift Herald",
+	"Tentacle",
+	"Sword Pirate",
+	"Azir Shieldman",
+	"Bubbs"
 	
  }
 Models = {
@@ -66,10 +72,16 @@ Models = {
 	--"OrderTurretDragon",
 	"Sru_Duckie",
 	"redDragon",
+	"BW_vship",
+	"SRU_RiftHerald",
+	"IllaoiMinion",
+	"BW_AP_Finn",
+	"AzirUltSoldier",
+	"BW_AP_Bubbs",
 }
 function OnLoad()
 	local ToUpdate = {}
-    ToUpdate.Version = 1.32
+    ToUpdate.Version = 1.33
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/ModelChanger.version"
@@ -155,43 +167,40 @@ function OnTick()
 		end
 	end
 end
+
 --00 05 00 00 40 1A C0 78 78 78 1A 53 C1 C1 C1 C1 52 61 6D 6D 75 73 50 42 00 4C 6F 63 61 74 69 6F 08 00 00 00 0F 00 00 00 00 80 3F 83 
 function MakeModel(modelName)
 	if SetSkin then
-		local mP = CLoLPacket(0x9C);
-		local mObject = modelName
-		
-		mP.vTable = 15650104;
-		mP:EncodeF(myHero.networkID);
-		mP:Encode4(0xA4A4A4A4);
-		mP:Encode1(0x3A);
-		mP:Encode1(0x3A);
-		mP:Encode1(0x3A);
-		mP:Encode1(0x3A);
-		mP:Encode1(0x55);
-		mP:Encode1(0xAC);
-		mP:Encode1(0x58);
-		
-		for I = 1, string.len(mObject) do
-			mP:Encode1(string.byte(string.sub(mObject, I, I)));
+		local P = CLoLPacket(14);
+		P.vTable = 16886576;
+		P:EncodeF(myHero.networkID);
+		P:Encode1(0x77 );
+		for I = 1, string.len(modelName) do
+			P:Encode1(string.byte(string.sub(modelName, I, I)));
 		end;
-
-		for I = 1, (16 - string.len(mObject)) do
-			mP:Encode1(0x00);
+		for I = 1, (16 - string.len(modelName)) do
+			P:Encode1(0x00);
 		end;
-
-		mP:Encode1(0x07);
-		mP:Encode1(0x00);
-		mP:Encode1(0x00);
-		mP:Encode1(0x00);
-		mP:Encode1(0x0F);
-		mP:Encode1(0x00);
-		mP:Encode1(0x00);
-		
-		mP:Encode4(0x00000000);
-		mP:Encode1(0x00);
-		mP:Hide();
-		RecvPacket(mP);
+		P:Encode1(0x04 );
+		P:Encode1(0x00 );
+		P:Encode1(0x00 );
+		P:Encode1(0x00 );
+		P:Encode1(0x0F );
+		P:Encode1(0x00 );
+		P:Encode1(0x00 );
+		P:Encode1(0x00 );
+		P:Encode1(0xCD );
+		P:Encode1(0x84 );
+		P:Encode1(0xA3 );
+		P:Encode1(0xA3 );
+		P:Encode1(0xA3 );
+		P:Encode1(0x40 );
+		P:Encode1(0xD4 );
+		P:Encode1(0xD4 );
+		P:Encode1(0xD4 );
+		P:Encode1(0xD4 );
+		P:Hide();
+		RecvPacket(P);
 	end
 end
 
