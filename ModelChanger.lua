@@ -1,4 +1,4 @@
-_G.Model_Version = 1.33
+_G.Model_Version = 1.34
 timeran = os.clock()
 function Print(message) print("<font color=\"#0000E5\"> Model Changer:</font> <font color=\"#FFFFFF\">" .. message) end
 
@@ -171,17 +171,17 @@ end
 --00 05 00 00 40 1A C0 78 78 78 1A 53 C1 C1 C1 C1 52 61 6D 6D 75 73 50 42 00 4C 6F 63 61 74 69 6F 08 00 00 00 0F 00 00 00 00 80 3F 83 
 function MakeModel(modelName)
 	if SetSkin then
-		local P = CLoLPacket(14);
-		P.vTable = 16886576;
+		local P = CLoLPacket(67);
+		P.vTable = 16984556;
 		P:EncodeF(myHero.networkID);
-		P:Encode1(0x77 );
+		P:Encode1(0x26 );
 		for I = 1, string.len(modelName) do
 			P:Encode1(string.byte(string.sub(modelName, I, I)));
 		end;
 		for I = 1, (16 - string.len(modelName)) do
 			P:Encode1(0x00);
 		end;
-		P:Encode1(0x04 );
+		P:Encode1(0x0A );
 		P:Encode1(0x00 );
 		P:Encode1(0x00 );
 		P:Encode1(0x00 );
@@ -189,16 +189,16 @@ function MakeModel(modelName)
 		P:Encode1(0x00 );
 		P:Encode1(0x00 );
 		P:Encode1(0x00 );
-		P:Encode1(0xCD );
-		P:Encode1(0x84 );
-		P:Encode1(0xA3 );
-		P:Encode1(0xA3 );
-		P:Encode1(0xA3 );
-		P:Encode1(0x40 );
-		P:Encode1(0xD4 );
-		P:Encode1(0xD4 );
-		P:Encode1(0xD4 );
-		P:Encode1(0xD4 );
+		P:Encode1(0xC2 );
+		P:Encode1(0xC2 );
+		P:Encode1(0xC2 );
+		P:Encode1(0xC2 );
+		P:Encode1(0x69 );
+		P:Encode1(0x1B );
+		P:Encode1(0x2E );
+		P:Encode1(0xA1 );
+		P:Encode1(0xA1 );
+		P:Encode1(0xA1 );
 		P:Hide();
 		RecvPacket(P);
 	end

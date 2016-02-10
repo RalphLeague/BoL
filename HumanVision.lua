@@ -1,7 +1,7 @@
 local updatedyes = true
 
 _G.HumanVision = true
-local hvversion = 0.6
+local hvversion = 0.61
 
 local blockMove, blockCast
 local lastMessage = 0
@@ -33,11 +33,11 @@ hvMenu:addSubMenu("Movement Limiter", "move")
 	hvMenu.move:addParam("enable", "Use Movement Limiter", SCRIPT_PARAM_ONOFF, true)
 	hvMenu.move:addParam("info222","", SCRIPT_PARAM_INFO, "")
 	hvMenu.move:addParam("info23","Max Actions Per Second", SCRIPT_PARAM_INFO, "")
-	hvMenu.move:addParam("lhit", "Last Hit", SCRIPT_PARAM_SLICE, 5, 1, 20, 0)
-	hvMenu.move:addParam("lclear", "Lane Clear", SCRIPT_PARAM_SLICE, 5, 1, 20, 0)
-	hvMenu.move:addParam("harass", "Harass", SCRIPT_PARAM_SLICE, 7, 1, 20, 0)
-	hvMenu.move:addParam("combo", "Combo", SCRIPT_PARAM_SLICE, 12, 1, 20, 0)
-	hvMenu.move:addParam("perm", "Persistant", SCRIPT_PARAM_SLICE, 8, 1, 20, 0)
+	hvMenu.move:addParam("lhit", "Last Hit", SCRIPT_PARAM_SLICE, 6, 1, 20, 0)
+	hvMenu.move:addParam("lclear", "Lane Clear", SCRIPT_PARAM_SLICE, 6, 1, 20, 0)
+	hvMenu.move:addParam("harass", "Harass", SCRIPT_PARAM_SLICE, 8, 1, 20, 0)
+	hvMenu.move:addParam("combo", "Combo", SCRIPT_PARAM_SLICE, 13, 1, 20, 0)
+	hvMenu.move:addParam("perm", "Persistant", SCRIPT_PARAM_SLICE, 9, 1, 20, 0)
 
 	
 local function IsOnScreen(spot)
@@ -170,7 +170,7 @@ function OnWndMsg(msg, key)
 end
 
 function OnSendPacket(p)
-	if blockMove and p.header == 137 then
+	if blockMove and p.header == 197 then
 		blockMove = false
 		if okMove then okMove = false return end
 		p:Block()
@@ -183,7 +183,7 @@ function OnSendPacket(p)
 		end
 	end
 	
-	if p.header == 137 and okMove then
+	if p.header == 197 and okMove then
 		okMove = false
 	end
 end
