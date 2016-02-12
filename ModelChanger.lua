@@ -1,4 +1,4 @@
-_G.Model_Version = 1.34
+_G.Model_Version = 1.4
 timeran = os.clock()
 function Print(message) print("<font color=\"#0000E5\"> Model Changer:</font> <font color=\"#FFFFFF\">" .. message) end
 
@@ -81,7 +81,7 @@ Models = {
 }
 function OnLoad()
 	local ToUpdate = {}
-    ToUpdate.Version = 1.33
+    ToUpdate.Version = 1.4
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/ModelChanger.version"
@@ -133,6 +133,7 @@ function Menu()
 		Menu:addParam("skins", "Change Me Back", SCRIPT_PARAM_ONOFF, false)
 		Menu:addParam("flames", "Give My Hero Flames", SCRIPT_PARAM_ONOFF, false)
 		Menu:addParam("model", "Change Model", SCRIPT_PARAM_LIST, 1, ModelNames)
+		Menu:addParam("ward", "Make my wards Teemo", SCRIPT_PARAM_ONOFF, false)
 		
 		Menu:addParam("info4","", SCRIPT_PARAM_INFO, "")
 		Menu:addParam("use", "Use Spells", SCRIPT_PARAM_ONOFF, false)  
@@ -169,11 +170,12 @@ function OnTick()
 end
 
 --00 05 00 00 40 1A C0 78 78 78 1A 53 C1 C1 C1 C1 52 61 6D 6D 75 73 50 42 00 4C 6F 63 61 74 69 6F 08 00 00 00 0F 00 00 00 00 80 3F 83 
-function MakeModel(modelName)
+function MakeModel(modelName, unit)
+	unit = unit and unit or myHero
 	if SetSkin then
 		local P = CLoLPacket(67);
 		P.vTable = 16984556;
-		P:EncodeF(myHero.networkID);
+		P:EncodeF(unit.networkID);
 		P:Encode1(0x26 );
 		for I = 1, string.len(modelName) do
 			P:Encode1(string.byte(string.sub(modelName, I, I)));
@@ -201,6 +203,14 @@ function MakeModel(modelName)
 		P:Encode1(0xA1 );
 		P:Hide();
 		RecvPacket(P);
+	end
+end
+
+function OnCreateObj(obj)
+	if not obj or not obj.valid or not obj.name then return end
+
+	if Menu.ward and obj.team == myHero.team and obj.name:lower():find("ward")  then 
+		MakeModel("Teemo", obj)
 	end
 end
 
