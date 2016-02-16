@@ -1,7 +1,6 @@
 local updatedyes = true
-
 _G.HumanVision = true
-local hvversion = 0.61
+local hvversion = 0.62
 
 local blockMove, blockCast
 local lastMessage = 0
@@ -15,7 +14,7 @@ for i, Enemy in pairs(sEnemies) do
 end
 
 local function Print(message) print("<font color=\"#0000e5\"><b>Human Vision:</font> </b><font color=\"#FFFFFF\">" .. message) end
-
+	
 local hvMenu = scriptConfig("Human Vision", "hvLOL")
 
 hvMenu:addParam("info23","", SCRIPT_PARAM_INFO, "")
@@ -77,7 +76,7 @@ end
 
 local lastCommand = 0
 function OnIssueOrder(source, order, position, target)
-	if hvMenu.move.enable and os.clock() - lastCommand < moveEvery() then
+	if hvMenu.move.enable and os.clock() - lastCommand < moveEvery() and order == 2 then
 		blockMove = true
 		bCount = bCount + 1
 		hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
@@ -170,21 +169,23 @@ function OnWndMsg(msg, key)
 end
 
 function OnSendPacket(p)
-	if blockMove and p.header == 197 then
-		blockMove = false
-		if okMove then okMove = false return end
-		p:Block()
-		
-		bCount = bCount + 1
-		hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
-		if hvMenu.msg and os.clock() - lastMessage > 1.5 then
-			Print("Blocked move")
-			lastMessage = os.clock()
+	if mLib then
+		if blockMove and p.header == mLib.moveHeader then
+			blockMove = false
+			if okMove then okMove = false return end
+			p:Block()
+			
+			bCount = bCount + 1
+			hvMenu:modifyParam("info22", "text", "Total Commands Blocked: "..bCount)
+			if hvMenu.msg and os.clock() - lastMessage > 1.5 then
+				Print("Blocked move")
+				lastMessage = os.clock()
+			end
 		end
-	end
-	
-	if p.header == 197 and okMove then
-		okMove = false
+		
+		if p.header == mLib.moveHeader and okMove then
+			okMove = false
+		end
 	end
 end
 
@@ -294,6 +295,37 @@ function OnLoad()
 		HVScriptUpdate(ToUpdate.Version,ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
 	end
 	
+	local function fixMLIB(new, updateY, verm)
+		local ToUpdate = {}
+		ToUpdate.Version = verm
+		ToUpdate.UseHttps = true
+		ToUpdate.Host = "raw.githubusercontent.com"
+		ToUpdate.VersionPath = "/RalphLeague/BoL/master/MachineLib.version"
+		ToUpdate.ScriptPath =  "/RalphLeague/BoL/master/MachineLib.lua"
+		ToUpdate.SavePath = LIB_PATH.."MachineLib.lua"
+		
+		ToUpdate.CallbackUpdate = function(NewVersion,OldVersion) Print("Latest MachineLib.lua downloaded. Restart now.") end
+		
+		ToUpdate.CallbackNoUpdate = function(OldVersion) mfin = true  end
+		ToUpdate.CallbackNewVersion = function(NewVersion)  end
+		if new then
+			ToUpdate.CallbackError = function(NewVersion) Print("Error updating your MachineLib download it manually.") end
+		else
+			ToUpdate.CallbackError = function(NewVersion) Print("Error updating your MachineLib download it manually.") end
+		end
+		HVScriptUpdate(ToUpdate.Version,ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
+	end
+
+	if FileExist(LIB_PATH.."MachineLib.lua") then
+		require "MachineLib"
+		mLib = MachineLib()
+		fixMLIB(true, false, mLib.version)
+	else
+		Print("Downloading Required file: MachineLib.lua")
+		fixMLIB(true, false, 0.01)
+		return
+	end
+
 	DelayAction(findOrbwalk, 15)
 end
 

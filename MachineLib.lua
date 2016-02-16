@@ -1,4 +1,4 @@
---Version 0.14
+--Version 0.15
 --Library for Machine Series by Ralphlol
 
 class 'MachineLib'
