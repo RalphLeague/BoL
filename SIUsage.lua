@@ -1,9 +1,9 @@
 --[[
 Summoner & Item Usage by Ralphlol
-Updated February 4th 2015
+Updated February 18th 2015
 ]]--
 
-local version = 1.22
+local version = 1.23
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
@@ -462,7 +462,10 @@ function OnProcessSpell(unit, spell)
 	if spell.name:lower():find("zedr") and spell.target == myHero then
 		DelayAction(function()
 			UseItemsCC(myHero, true)
-		end, 1.5)
+			DelayAction(function()
+				CastZhonya()
+			end, 0.3)
+		end, 1.7)
 	end
 end
 function OnApplyBuff(source, unit, buff)
