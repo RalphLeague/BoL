@@ -1,9 +1,9 @@
 --[[
 Summoner & Item Usage by Ralphlol
-Updated February 18th 2015
+Updated February 25th 2015
 ]]--
 
-local version = 1.23
+local version = 1.24
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
@@ -14,9 +14,9 @@ require 'VPrediction'
 vPred = VPrediction()
 
 local function Slot(name)
-	if myHero:GetSpellData(SUMMONER_1).name:find(name) then
+	if myHero:GetSpellData(SUMMONER_1).name:lower():find(name) then
 		return SUMMONER_1
-	elseif myHero:GetSpellData(SUMMONER_2).name:find(name) then
+	elseif myHero:GetSpellData(SUMMONER_2).name:lower():find(name) then
 		return SUMMONER_2
 	end
 end
@@ -585,12 +585,12 @@ end
 Print("Version "..version.." loaded.") 
 
 function HealSlot()
-	if myHero:GetSpellData(SUMMONER_1).name:find("summonerheal") or myHero:GetSpellData(SUMMONER_2).name:find("summonerheal") then
+	if myHero:GetSpellData(SUMMONER_1).name:lower():find("summonerheal") or myHero:GetSpellData(SUMMONER_2).name:lower():find("summonerheal") then
 		realheals = true
 	end
-	if myHero:GetSpellData(SUMMONER_1).name:find("summonerheal")  or myHero:GetSpellData(SUMMONER_1).name:find("summonerbar") then
+	if myHero:GetSpellData(SUMMONER_1).name:lower():find("summonerheal")  or myHero:GetSpellData(SUMMONER_1).name:lower():find("summonerbar") then
 		return SUMMONER_1
-	elseif myHero:GetSpellData(SUMMONER_2).name:find("summonerheal") or myHero:GetSpellData(SUMMONER_2).name:find("summonerbar") then
+	elseif myHero:GetSpellData(SUMMONER_2).name:lower():find("summonerheal") or myHero:GetSpellData(SUMMONER_2).name:lower():find("summonerbar") then
 		return SUMMONER_2
 	end
 end
