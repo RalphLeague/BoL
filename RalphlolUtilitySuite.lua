@@ -1,16 +1,15 @@
 TestCrashRun = true
 --[[
 Ralphlol's Utility Suite
-Updated 2/15/2016
+Updated 2/25/2016
 ]]
 
 function Print(msg) print("<font color=\"#A51842\">Ralphlol's Utility Suite:  </font><font color=\"#FFFFFF\">"..msg) end
 local sEnemies = GetEnemyHeroes()
-local lolPatch = (GetGameVersion and GetGameVersion():sub(1,3) == "6.3") and 1 or 2
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.Version = 1.23
+    ToUpdate.Version = 1.24
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/RalphlolUtilitySuite.version"
@@ -119,7 +118,7 @@ local towerTarget = 0
 local drawThis = {time = 0}
 function OnProcessSpell(unit, spell)
 	if unit.team ~= myHero.team then
-		if spell.name == "summonerflash" then
+		if spell.name:lower():find('summonerflash') then
 			local f = spell.endPos
 			if GetDistance(unit, spell.endPos) > 425 then
 				f = Vector(unit) + (Vector(spell.endPos) - Vector(unit)):normalized() * (425)
@@ -446,14 +445,8 @@ function missCS:getAttackRange()
 end
 
 function missCS:RecvPacket(p)
-	if lolPatch == 1 then
-		if p.header == mLib.goldHeader then
-			self.lastGold = os.clock()
-		end
-	else
-		if p.header == mLib.goldHeader  then
-			self.lastGold = os.clock()
-		end
+	if p.header == mLib.goldHeader then
+		self.lastGold = os.clock()
 	end
 end
 
