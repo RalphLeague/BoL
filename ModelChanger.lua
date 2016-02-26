@@ -1,4 +1,4 @@
-_G.Model_Version = 1.4
+_G.Model_Version = 1.41
 timeran = os.clock()
 function Print(message) print("<font color=\"#0000E5\"> Model Changer:</font> <font color=\"#FFFFFF\">" .. message) end
 
@@ -81,7 +81,7 @@ Models = {
 }
 function OnLoad()
 	local ToUpdate = {}
-    ToUpdate.Version = 1.4
+    ToUpdate.Version = _G.Model_Version
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/ModelChanger.version"
@@ -169,14 +169,20 @@ function OnTick()
 	end
 end
 
---00 05 00 00 40 1A C0 78 78 78 1A 53 C1 C1 C1 C1 52 61 6D 6D 75 73 50 42 00 4C 6F 63 61 74 69 6F 08 00 00 00 0F 00 00 00 00 80 3F 83 
 function MakeModel(modelName, unit)
 	unit = unit and unit or myHero
 	if SetSkin then
-		local P = CLoLPacket(67);
-		P.vTable = 16984556;
+		local P = CLoLPacket(251);
+		P.vTable = 16460152;
 		P:EncodeF(unit.networkID);
-		P:Encode1(0x26 );
+		P:Encode1(0x68 );
+		P:Encode1(0x68 );
+		P:Encode1(0x68 );
+		P:Encode1(0x68 );
+		P:Encode1(0x6D );
+		P:Encode1(0xA0 );
+		P:Encode1(0x10 );
+		P:Encode1(0x10 );
 		for I = 1, string.len(modelName) do
 			P:Encode1(string.byte(string.sub(modelName, I, I)));
 		end;
@@ -191,16 +197,9 @@ function MakeModel(modelName, unit)
 		P:Encode1(0x00 );
 		P:Encode1(0x00 );
 		P:Encode1(0x00 );
-		P:Encode1(0xC2 );
-		P:Encode1(0xC2 );
-		P:Encode1(0xC2 );
-		P:Encode1(0xC2 );
-		P:Encode1(0x69 );
-		P:Encode1(0x1B );
-		P:Encode1(0x2E );
-		P:Encode1(0xA1 );
-		P:Encode1(0xA1 );
-		P:Encode1(0xA1 );
+		P:Encode1(0xAF );
+		P:Encode1(0x89 );
+		P:Encode1(0xE3 );
 		P:Hide();
 		RecvPacket(P);
 	end
