@@ -2,7 +2,7 @@
 
 class 'MachineLib'
 function MachineLib:__init()
-	self.version = 6.4
+	self.version = 6.41
 	
 	self.lolPatch = GetGameVersion and GetGameVersion():sub(1,3) == "6.4" and 1 or 2
 	self.notPresentPatch = GetGameVersion and GetGameVersion():sub(1,3) ~= "6.3" and GetGameVersion():sub(1,3) ~= "6.4"
@@ -30,7 +30,7 @@ function MachineLib:__init()
 	--Recall
 	self.recallHeader = self.lolPatch == 1 and 180 or 0x008D
 	self.recallPos1 = self.lolPatch == 1 and 31 or 80
-	self.recallPos2 = self.lolPatch == 1 and 6 or 6
+	self.recallPos2 = self.lolPatch == 1 and 7 or 6
 
 	
 	local IDBytes = {	
