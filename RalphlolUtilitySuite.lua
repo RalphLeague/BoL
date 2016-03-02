@@ -1,7 +1,7 @@
 TestCrashRun = true
 --[[
 Ralphlol's Utility Suite
-Updated 2/25/2016
+Updated 3/2nd/2016
 ]]
 
 function Print(msg) print("<font color=\"#A51842\">Ralphlol's Utility Suite:  </font><font color=\"#FFFFFF\">"..msg) end
@@ -9,19 +9,18 @@ local sEnemies = GetEnemyHeroes()
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.Version = 1.24
+    ToUpdate.Version = 1.25
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/RalphlolUtilitySuite.version"
     ToUpdate.ScriptPath =  "/RalphLeague/BoL/master/RalphlolUtilitySuite.lua"
     ToUpdate.SavePath = SCRIPT_PATH.._ENV.FILE_NAME
     ToUpdate.CallbackUpdate = function(NewVersion,OldVersion) Print("Updated to v"..NewVersion) end
-    ToUpdate.CallbackNoUpdate = function(OldVersion) Print("No Updates Found") end
+    ToUpdate.CallbackNoUpdate = function(OldVersion) Print(" Version "..ToUpdate.Version.." loaded") end
     ToUpdate.CallbackNewVersion = function(NewVersion) Print("New Version found ("..NewVersion.."). Please wait until its downloaded") end
     ToUpdate.CallbackError = function(NewVersion) Print("Error while Downloading. Please try again.") end
     RU_05(ToUpdate.Version,ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
-
-	Print(" Version "..ToUpdate.Version.." Loaded")
+	
 	MainMenu = scriptConfig("Ralphlol's Utility Suite","UtilitySuite")
 
 	turrets = GetTurrets()
@@ -686,6 +685,7 @@ Countdown._immuneEffects = {
 	{'NocturneUnspeakableHorror_beam.troy', 2},
 	{'GateMarker_green.troy', 1.5},
 	{'_error_%_$.troy2', 4, "zedr"},
+	{'_p_proc.troy', 4, "kogmawicathiansurprise"},
 	{'_stasis_skin_ful', 2.6},
 	{'_r_aoe.troy', 4, 'kindredrnodeathbuff'},
 }
@@ -1261,7 +1261,7 @@ end
 local lshift, rshift, band, bxor = bit32.lshift, bit32.rshift, bit32.band, bit32.bxor
 
 function recallDraw:RecvPacket(p)
-	if p.header == mLib.recallHeader  then --recall
+	if mLib and p.header == mLib.recallHeader  then --recall
 		p.pos = mLib.recallPos1
 		--local spellid1 = p:Decode1()
 		--print("spell "..spellid1)

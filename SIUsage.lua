@@ -1,9 +1,9 @@
 --[[
 Summoner & Item Usage by Ralphlol
-Updated February 25th 2015
+Updated March 2nd 2015
 ]]--
 
-local version = 1.24
+local version = 1.25
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
@@ -132,9 +132,9 @@ function OnLoad()
 	}
 	___GetInventorySlotItem	= rawget(_G, "GetInventorySlotItem")
 	_G.GetInventorySlotItem	= GetSlotItem
-	if myHero:GetSpellData(4).name:find("exhaust") then
+	if myHero:GetSpellData(4).name:lower():find("exhaust") then
 		exhaust = { slot = 4, key = "D", range =  650, ready = false }
-	elseif myHero:GetSpellData(5).name:find("exhaust") then
+	elseif myHero:GetSpellData(5).name:lower():find("exhaust") then
 		exhaust = { slot = 5, key = "F", range =  650, ready = false }
 	end
 	SummonerSlot = Slot("summonerboost")
