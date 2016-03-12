@@ -1,9 +1,9 @@
 --[[
 Summoner & Item Usage by Ralphlol
-Updated March 2nd 2015
+Updated March 12th 2015
 ]]--
 
-local version = 1.25
+local version = 1.26
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
@@ -159,8 +159,8 @@ function ItemMenu()
 	MainMenu = scriptConfig("Summoner & Item Usage", "SIUSE")
 		MainMenu:addSubMenu("Health Potions", "potion")
 			MainMenu.potion:addParam("Key", "Use While Pressed", SCRIPT_PARAM_ONKEYDOWN, false, 32)
-			MainMenu.potion:addParam("Always", "Use Always", SCRIPT_PARAM_ONOFF, false)
-			MainMenu.potion:addParam("enemy", "Use if no enemies", SCRIPT_PARAM_ONOFF, false)
+			MainMenu.potion:addParam("Always", "Use Always", SCRIPT_PARAM_ONOFF, true)
+			MainMenu.potion:addParam("enemy", "Use if no enemies", SCRIPT_PARAM_ONOFF, true)
 			MainMenu.potion:addParam("health", "If My Health % is <", SCRIPT_PARAM_SLICE, 60, 0, 100, 0) 
 	--	MainMenu:addSubMenu("Mana Potions", "potionMana")
 	--		MainMenu.potionMana:addParam("Key", "Use While Pressed", SCRIPT_PARAM_ONKEYDOWN, false, 32)
