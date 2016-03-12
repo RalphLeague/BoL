@@ -1,5 +1,5 @@
 if myHero.charName ~= "Sona" then return end
-local version = "1.04"
+local version = "1.05"
 local enemyHeroes = GetEnemyHeroes()
 local basePos = {[100] = Vector(2088, 0, 2222), [200] = Vector(12759, 0, 12861)}
 
@@ -50,7 +50,7 @@ Sona = scriptConfig("Poke Machine Sona", "SonaLOL")
 	
 	Sona:addSubMenu("Settings!", "Sett")
 		Sona.Sett:addParam("info22","General Settings", SCRIPT_PARAM_INFO, "")
-		Sona.Sett:addParam("Debug", "Debug", SCRIPT_PARAM_ONOFF, false)
+		Sona.Sett:addParam("Orb", "Enable Orbwalk", SCRIPT_PARAM_ONOFF, true)
 		Sona.Sett:addParam("info22","", SCRIPT_PARAM_INFO, "")
 		Sona.Sett:addParam("info22", "Harass Settings", SCRIPT_PARAM_INFO, "")
 		Sona.Sett:addParam("HarassMana", "Do not use Q if mana % is < ", SCRIPT_PARAM_SLICE, 30, 0, 100, 1)
@@ -344,7 +344,7 @@ function OnProcessSpell(unit, spell)
 	end
 end
 function Walk()
-	if CanMove() then
+	if Sona.Sett.Orb and CanMove() then
 		if d(mousePos, myHero.pos) < 2500 then
 			myHero:MoveTo(mousePos.x, mousePos.z)
 		else
@@ -355,7 +355,7 @@ function Walk()
 end
 
 function Attack(unit)
-	if ValidTarget(unit, AARange) and CanAttack() then
+	if Sona.Sett.Orb and ValidTarget(unit, AARange) and CanAttack() then
 		myHero:Attack(unit)
 		--LastAA = os.clock() + GetWindUpTime() + (GetLatency()/1000)
 	end
