@@ -1,6 +1,6 @@
 local updatedyes = true
 _G.HumanVision = true
-local hvversion = 0.62
+local hvversion = 0.63
 
 local blockMove, blockCast
 local lastMessage = 0
@@ -18,6 +18,7 @@ local function Print(message) print("<font color=\"#0000e5\"><b>Human Vision:</f
 local hvMenu = scriptConfig("Human Vision", "hvLOL")
 
 hvMenu:addParam("info23","", SCRIPT_PARAM_INFO, "")
+hvMenu:addParam("stream", "Enable Streaming Mode (F7)", SCRIPT_PARAM_ONKEYTOGGLE, false, 118)
 hvMenu:addParam("fow", "Ignore new FoW enemies", SCRIPT_PARAM_ONOFF, true)
 hvMenu:addParam("msg", "Show messages", SCRIPT_PARAM_ONOFF, false)
 hvMenu:addParam("info22","Total Commands Blocked: 0", SCRIPT_PARAM_INFO, "")
@@ -60,9 +61,29 @@ local function newEnemy()
 	end
 end
 
+local function dChat()
+	chat1B = _G.print
+	chat2B = _G.PrintChat
+	_G.print = function() end
+	_G.PrintChat = function() end
+	DisableOverlay()
+	ChatOff = true
+end
+local function eChat()
+	_G.print = chat1B
+	_G.PrintChat = chat2B
+	EnableOverlay()
+	ChatOff = false
+end
+
 function OnTick()
 	if hvMenu.fow then
 		newEnemy()
+	end
+	if hvMenu.stream and not ChatOff then
+		dChat()
+	elseif not hvMenu.stream and ChatOff then
+		eChat()
 	end
 end
 
