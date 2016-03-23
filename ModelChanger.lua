@@ -1,4 +1,4 @@
-_G.Model_Version = 1.42
+_G.Model_Version = 1.43
 timeran = os.clock()
 function Print(message) print("<font color=\"#0000E5\"> Model Changer:</font> <font color=\"#FFFFFF\">" .. message) end
 
@@ -172,9 +172,12 @@ end
 function MakeModel(modelName, unit)
 	unit = unit and unit or myHero
 	if SetSkin then
-		local P = CLoLPacket(89);
-		P.vTable = 16108044;
+		local P = CLoLPacket(322);
+		P.vTable = 15277740;
 		P:EncodeF(unit.networkID);
+		P:Encode1(0x97 );
+		P:Encode1(0xCB );
+		P:Encode1(0x31 );
 		for I = 1, string.len(modelName) do
 			P:Encode1(string.byte(string.sub(modelName, I, I)));
 		end;
@@ -189,21 +192,19 @@ function MakeModel(modelName, unit)
 		P:Encode1(0x00 );
 		P:Encode1(0x00 );
 		P:Encode1(0x00 );
-		P:Encode1(0x38 );
-		P:Encode1(0xCB );
-		P:Encode1(0x9F );
-		P:Encode1(0x9F );
-		P:Encode1(0x6C );
-		P:Encode1(0xE9 );
-		P:Encode1(0x2E );
-		P:Encode1(0xC1 );
-		P:Encode1(0xC1 );
-		P:Encode1(0xC1 );
-		P:Encode1(0xC1 );
+		P:Encode1(0x79 );
+		P:Encode1(0xA0 );
+		P:Encode1(0x0D );
+		P:Encode1(0x0D );
+		P:Encode1(0x77 );
+		P:Encode1(0x77 );
+		P:Encode1(0x77 );
+		P:Encode1(0x77 );
 		P:Hide();
 		RecvPacket(P);
 	end
 end
+
 
 function OnCreateObj(obj)
 	if not obj or not obj.valid or not obj.name then return end
