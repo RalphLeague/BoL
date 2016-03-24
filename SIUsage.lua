@@ -1,9 +1,9 @@
 --[[
 Summoner & Item Usage by Ralphlol
-Updated March 12th 2015
+Updated March 24th 2015
 ]]--
 
-local version = 1.26
+local version = 1.27
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
@@ -424,7 +424,7 @@ if AddProcessAttackCallback and heal and MainMenu.heal.enable then
 end
 
 function AProc(unit, spell)
-	if not spell or not unit then return end
+	if not unit or not unit.valid or not spell then return end
 
 	if spell.target and spell.target.type == myHero.type and spell.target.team == myHero.team and (spell.name:lower():find("_turret_chaos") or spell.name:lower():find("_turret_order")) and not (spell.name:lower():find("4") or spell.name:lower():find("3")) then
 		if GetDistance(unit) < 2000 then
@@ -454,6 +454,8 @@ function AProc(unit, spell)
 	end
 end
 function OnProcessSpell(unit, spell)
+	if not unit or not unit.valid or not spell then return end
+	
 	if heal and MainMenu.heal.enable and myHero:CanUseSpell(heal) == 0 and spell.target and spell.target.isMe and unit.team ~= myHero.team and unit.type == myHero.type then
 		if myHero.health/myHero.maxHealth <= (MainMenu.heal.health/100)*1.5 then
 			CastSpell(heal)
