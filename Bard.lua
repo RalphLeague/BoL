@@ -1,4 +1,4 @@
-local version = 0.9
+local version = 0.91
 
 if myHero.charName ~= "Bard" then return end
 
@@ -50,6 +50,14 @@ local sAllies = GetAllyHeroes()
 local lasttime={}
 local lastTime = 0
 local lastpos={}
+
+local function IsOnScreen(spot)
+	local check = WorldToScreen(D3DXVECTOR3(spot.x, spot.y, spot.z))
+	local x, y = check.x, check.y
+	if x > 0 and x < WINDOW_W and y > 0 and y < WINDOW_H then
+		return true
+	end
+end
 
 function OnLoad()
 
@@ -135,15 +143,13 @@ function OnLoad()
 	
 	Variables()
 	Menu()
-	
-	--moveToCursor()
-	--SendChat("/laugh")
 end
 
 
 
 function Variables()
-	SpellQ = {speed = 1100, range = 850, delay = 0.25, width = 108, ready = false}
+	SpellQ = {speed = 1500, range = 900, delay = 0.25, width = 108, ready = false}
+	SpellW = {speed = 1100, range = 800, delay = 0.25, width = 108, ready = false}
 	
 	SpellStop = {"crowstorm","luxmalicecannon","absolutezero","alzaharnethergrasp","caitlynaceinthehole","drainchannel","galioidolofdurand","infiniteduress","katarinar","missfortunebullettime","pantheon_grandskyfall_jump","shenstandunited","urgotswap2","zhonyashourglass","velkozr","ezrealtrueshotbarrage"}
 	Support = {"Alistar", "Blitzcrank", "Janna", "Karma", "Leona", "Lulu", "Nami", "Nunu", "Sona", "Soraka", "Taric", "Thresh", "Zilean", "Braum", "Bard"}
@@ -177,6 +183,11 @@ BardMenu = scriptConfig("Bard Q Helper", "BardLOL")
 	BardMenu:addSubMenu("Combo Settings", "combo")
 		BardMenu.combo:addParam("qMana", "Use Q combo if  mana is above", SCRIPT_PARAM_SLICE, 5, 0, 101, 0) 
 		BardMenu.combo:addParam("bush", "Ward bush when they hide", SCRIPT_PARAM_ONOFF, true)
+		BardMenu.combo:addParam("info51","", SCRIPT_PARAM_INFO, "")
+		BardMenu.combo:addParam("W", "Use W heal", SCRIPT_PARAM_ONOFF, true)
+		BardMenu.combo:addParam("wMana", "Use W combo if  mana is above", SCRIPT_PARAM_SLICE, 25, 0, 101, 0) 
+		BardMenu.combo:addParam("WSelf", "Heal self at life", SCRIPT_PARAM_SLICE, 40, 0, 90, 0) 
+		BardMenu.combo:addParam("WOther", "Heal others at life", SCRIPT_PARAM_SLICE, 30, 0, 90, 0) 
 	BardMenu:addSubMenu("Harass Settings", "harass") 
 		BardMenu.harass:addParam("qMana", "Use Q harass if  mana is above", SCRIPT_PARAM_SLICE, 35, 0, 101, 0) 
 	
@@ -191,6 +202,7 @@ BardMenu = scriptConfig("Bard Q Helper", "BardLOL")
 			BardMenu.sett.drawing:addParam("aaDraw", "Draw AA Range", SCRIPT_PARAM_ONOFF, true)
 			BardMenu.sett.drawing:addParam("hitDraw", "Draw My Hitbox", SCRIPT_PARAM_ONOFF, true)
 			BardMenu.sett.drawing:addParam("qDraw", "Draw (Q) Range", SCRIPT_PARAM_ONOFF, true) 
+			BardMenu.sett.drawing:addParam("chime", "Draw Neareset Chime", SCRIPT_PARAM_ONOFF, true) 
 			
 	BardMenu:addSubMenu("Orbwalking Settings", "Orbwalking") 	
 		
@@ -264,6 +276,7 @@ end
 function TickChecks()
 	myMana = (myHero.mana/myHero.maxMana )*100
 	SpellQ.ready = (myHero:CanUseSpell(0) == 0)
+	SpellW.ready = (myHero:CanUseSpell(1) == 0)
 	Target = GetCustomTarget()
 	TargetSelectorMode()
 end
@@ -281,8 +294,74 @@ function GetCustomTarget()
 		return nil
 	end
 end
+local chimes = {}
 
+--WINDOW_H
+--WINDOW_W
+function DrawRectangleAL(x, y, w, h, color)
+    local Points = {}
+    Points[1] = D3DXVECTOR2(math.floor(x), math.floor(y))
+    Points[2] = D3DXVECTOR2(math.floor(x + w), math.floor(y))
+    DrawLines2(Points, math.floor(h), color)
+end
+function drawChimes()
+	local closest
+	local closestD
+	for i, chime in pairs(chimes) do
+		if not closest then
+			closest = chime
+			closestD = GetDistance(chime)
+		else
+			local currCloseD = GetDistance(chime)
+			if currCloseD < closestD then
+				closest = chime
+				closestD = currCloseD
+			end
+		end
+	end
+	
+	local chime = closest
+	if chime then
+		local color
+		if closestD < 3600 then
+			local distance = closestD / 3600
+			color = ARGB(255,255*distance,255-255*distance,0)
+		else
+			color = ARGB(255,255,0,0)
+		end
+		if IsOnScreen(chime) then
+			local extend = Vector(chime) + (Vector(myHero) - Vector(chime)):normalized() * (40)
+			DrawCircle3D(chime.x, chime.y, chime.z, 40, 2, color, 52)
+			DrawLine3D(extend.x, extend.y, extend.z, myHero.x, myHero.y, myHero.z, 2,color)
+		else
+			local t2 = GetDistance(chime)
+			for i = 0.1, 1, 0.05 do
+				local extend = Vector(myHero) + (Vector(chime) - Vector(myHero)):normalized() * (t2*i)
+				if not IsOnScreen(extend) then
+					screen = WorldToScreen(D3DXVECTOR3(extend.x, extend.y, extend.z))
+					if screen.x < 0 then
+						screen.x = 34
+					elseif screen.x > WINDOW_W-34 then
+						screen.x = WINDOW_W-34
+					end
+					if screen.y < 0 then
+						screen.y = 18
+					elseif screen.y > WINDOW_H-18 then
+						screen.y = WINDOW_H-18
+					end 
+					DrawLineBorder(screen.x - 32, screen.y, screen.x + 32, screen.y, 34, color, 2)
+					DrawTextA(tostring(string.format("%.2i",t2)), 30, screen.x, screen.y, color,"center","center")
+					break
+				end
+			end
+		end
+	end
+end
 function OnDraw()
+	if BardMenu.sett.drawing.chime then
+		drawChimes()
+	end
+	
 	if Debug then
 		if vPred then
 			local dp = GetDistance(myHero.pos, mousePos)
@@ -381,12 +460,55 @@ function ComboMode(unit)
 	if myMana > BardMenu.combo.qMana then
 		CastQ(unit)
 	end
+	
+	CastW()
 end
+
 function HarassMode(unit)
 	if myMana > BardMenu.harass.qMana then
 		CastQ(unit)
 	end
 end
+
+function getHealthP(unit)
+	return unit.health/unit.maxHealth
+end
+
+function CastW()
+	if SpellW.ready and myMana > BardMenu.combo.wMana then
+		if getHealthP(myHero) < BardMenu.combo.WSelf/100 then
+			local enemy = findClosestEnemy(myHero)
+			if ValidTarget(enemy, 600) then
+				CastSpell(1, myHero)
+			end
+		end
+		for i, ally in pairs(sAllies) do
+			if GetDistance(ally) < SpellW.range - 100 and getHealthP(ally) < BardMenu.combo.WSelf/100 then
+				local enemy = findClosestEnemy(myHero)
+				if ValidTarget(enemy, 600) then
+					CastSpell(1, ally)
+				end
+			end
+		end
+	end
+end
+
+function findClosestEnemy(obj)
+    local closestEnemy = nil
+    local currentEnemy = nil
+	for i, currentEnemy in pairs(sEnemies) do
+        if ValidTarget(currentEnemy) then
+            if closestEnemy == nil then
+                closestEnemy = currentEnemy
+			end
+            if GetDistanceSqr(currentEnemy.pos, obj) < GetDistanceSqr(closestEnemy.pos, obj) then
+				closestEnemy = currentEnemy
+            end
+        end
+    end
+	return closestEnemy
+end
+
 function CastQ(unit)
 	if not SpellQ.ready or not ValidTarget(unit) then return end
 
@@ -394,7 +516,7 @@ function CastQ(unit)
 	if CastPosition then 
 		local dp = GetDistance(myHero.pos, CastPosition)
 		if dp < SpellQ.range then
-			local extend = SpellQ.range - dp - 20
+			local extend = 400
 			if extend > 1 then
 				local extendedCollision = Vector(CastPosition) + (Vector(CastPosition) - Vector(myHero)):normalized() * (extend)
 				if Hitchance >= 2 then
@@ -485,6 +607,32 @@ function TargetSelectorMode()
 	end
 end
 
+function OnCreateObj(obj)
+	if not obj or not obj.valid then return end
+	--if GetDistance(obj) < 1500 then print(obj.name.." "..GetDistance(obj)) end
+	if obj.name:lower():find('chime.troy') then
+		table.insert(chimes, obj)
+	end
+
+	if obj.spellOwner and obj.spellOwner == myHero then
+		--if obj.name:lower():find('q_aoe_resolve.') then
+		--	qReturn = obj
+		--end
+
+
+	end
+end
+
+function OnDeleteObj(obj)
+	if not obj or not obj.valid then return end
+	if obj.name:lower():find('chime.troy') then
+		for i, chime in pairs(chimes) do
+			if chime == obj then
+				table.remove(chimes, i)
+			end
+		end
+	end
+end
 function bushfind()
 	if lastTime +15 > os.clock() then return end
 	for _,c in pairs(sEnemies) do		
