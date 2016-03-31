@@ -1,4 +1,4 @@
-local version = 0.91
+local version = 0.912
 
 if myHero.charName ~= "Bard" then return end
 
@@ -153,9 +153,9 @@ function Variables()
 	
 	SpellStop = {"crowstorm","luxmalicecannon","absolutezero","alzaharnethergrasp","caitlynaceinthehole","drainchannel","galioidolofdurand","infiniteduress","katarinar","missfortunebullettime","pantheon_grandskyfall_jump","shenstandunited","urgotswap2","zhonyashourglass","velkozr","ezrealtrueshotbarrage"}
 	Support = {"Alistar", "Blitzcrank", "Janna", "Karma", "Leona", "Lulu", "Nami", "Nunu", "Sona", "Soraka", "Taric", "Thresh", "Zilean", "Braum", "Bard"}
-	if myHero:GetSpellData(4).name:find("exhaust") then
+	if myHero:GetSpellData(4).name:lower():find("exhaust") then
 		exhaust = { slot = 4, key = "D", range =  650, ready = false }
-	elseif myHero:GetSpellData(5).name:find("exhaust") then
+	elseif myHero:GetSpellData(5).name:lower():find("exhaust") then
 		exhaust = { slot = 5, key = "F", range =  650, ready = false }
 	end
 	enemyMinions = minionManager(MINION_ENEMY, 1100, myHero)
@@ -179,7 +179,7 @@ function GetSlotItem(id, unit)
 end
 
 function Menu()
-BardMenu = scriptConfig("Bard Q Helper", "BardLOL")
+BardMenu = scriptConfig("Bard Menu", "BardLOL")
 	BardMenu:addSubMenu("Combo Settings", "combo")
 		BardMenu.combo:addParam("qMana", "Use Q combo if  mana is above", SCRIPT_PARAM_SLICE, 5, 0, 101, 0) 
 		BardMenu.combo:addParam("bush", "Ward bush when they hide", SCRIPT_PARAM_ONOFF, true)
