@@ -1,4 +1,4 @@
-local version = 0.912
+local version = 0.92
 
 if myHero.charName ~= "Bard" then return end
 
@@ -20,22 +20,28 @@ function CheckOrbwalk()
 		KindredMenu.Orbwalking:addParam("info11","Nebel Orb Detected", SCRIPT_PARAM_INFO, "")
 		norbUsed = true
 	else
-		if FileExist(LIB_PATH.."SxOrbWalk.lua") or FileExist(LIB_PATH.."SxOrbwalk.lua") then
-			require "SxOrbWalk"
-			SxOrb:LoadToMenu(BardMenu.Orbwalking, false) 
-			sxorbused = true
-			SxOrb:RegisterAfterAttackCallback(MyAfterAttack)
-			DelayAction(function()		
-				if SxOrb.Version < 3.1 then
-					Print("Your SxOrbWalk library is outdated, please get the latest version!")
-				end
-			end, 5)
+		if FileExist(LIB_PATH.."Nebelwolfi's Orb Walker.lua") then
+			require "Nebelwolfi's Orb Walker"
+			if NebelwolfisOrbWalkerClass then
+				NebelwolfisOrbWalkerClass(BardMenu.Orbwalking)
+				norbUsed = true
+			end
 		else
-			Print("Download SxOrbWalk or other orbwalker to use the script!")
-			Print("Download SxOrbWalk or other orbwalker to use the script!")
-			Print("Download SxOrbWalk or other orbwalker to use the script!")
-			Print("Download SxOrbWalk or other orbwalker to use the script!")
-			Print("Download SxOrbWalk or other orbwalker to use the script!")
+			if FileExist(LIB_PATH.."SxOrbWalk.lua") or FileExist(LIB_PATH.."SxOrbwalk.lua") then
+				require "SxOrbWalk"
+				SxOrb:LoadToMenu(BardMenu.Orbwalking, false) 
+				sxorbused = true
+				DelayAction(function()		
+					if SxOrb.Version < 3.1 then
+						Print("Your SxOrbWalk library is outdated, please get the latest version!")
+					end
+				end, 5)
+			else
+				Print("Download SxOrbWalk or other orbwalker to use the script!")
+				Print("Download SxOrbWalk or other orbwalker to use the script!")
+				Print("Download SxOrbWalk or other orbwalker to use the script!")
+				Print("Download SxOrbWalk or other orbwalker to use the script!")
+			end
 		end
 	end
 end
@@ -149,7 +155,9 @@ end
 
 function Variables()
 	SpellQ = {speed = 1500, range = 900, delay = 0.25, width = 108, ready = false}
-	SpellW = {speed = 1100, range = 800, delay = 0.25, width = 108, ready = false}
+	SpellW = {speed = 1100, range = 800, delay = 0.25, width = 100, ready = false}
+	SpellE = {ready = false}
+	SpellR = {speed = 1500, range = 3400, delay = 0.25, width = 350, ready = false}
 	
 	SpellStop = {"crowstorm","luxmalicecannon","absolutezero","alzaharnethergrasp","caitlynaceinthehole","drainchannel","galioidolofdurand","infiniteduress","katarinar","missfortunebullettime","pantheon_grandskyfall_jump","shenstandunited","urgotswap2","zhonyashourglass","velkozr","ezrealtrueshotbarrage"}
 	Support = {"Alistar", "Blitzcrank", "Janna", "Karma", "Leona", "Lulu", "Nami", "Nunu", "Sona", "Soraka", "Taric", "Thresh", "Zilean", "Braum", "Bard"}
@@ -158,7 +166,7 @@ function Variables()
 	elseif myHero:GetSpellData(5).name:lower():find("exhaust") then
 		exhaust = { slot = 5, key = "F", range =  650, ready = false }
 	end
-	enemyMinions = minionManager(MINION_ENEMY, 1100, myHero)
+	enemyMinions = minionManager(MINION_ENEMY, 1300, myHero)
 end
 
 function GetSlotItem(id, unit)
@@ -178,6 +186,46 @@ function GetSlotItem(id, unit)
 	end
 end
 
+function dPredOn()
+	if FileExist(LIB_PATH.."DivinePred.luac") and FileExist(LIB_PATH.."DivinePred.lua") then
+		require "DivinePred"
+		DP = DivinePred()
+		if DP.VERSION < 3.5 then
+			DelayAction(function()
+				--Print("Redownload Divine Prediction to use it. Need minimum version 1.8")
+			end, 1.2)
+		else
+			dpEnabled = true
+		end
+		--DivinePred.debugMode = true
+	else
+		--Print("Divine Prediction not installed, cannot use it")
+	end
+end
+function hPredOn()
+	if FileExist(LIB_PATH.."HPrediction.lua") then
+		require 'HPrediction'
+		HPred = HPrediction()
+
+		if _G.HPrediction_Version then
+			hpEnabled = true
+			HP_Q = HPSkillshot({delay = SpellQ.delay, range = SpellQ.range, speed = SpellQ.speed, type = "DelayLine", width = SpellQ.width})
+		else
+			Print("Update HPrediction to use it.")
+		end
+	else
+		--Print("HPrediction not installed, cannot use it")
+	end
+end
+function kPredOn()
+	if FileExist(LIB_PATH.."KPrediction.lua") then
+		require 'KPrediction'
+		KPred = KPrediction()
+		kpEnabled = true
+		KP_Q = KPSkillshot({delay = SpellQ.delay, range = SpellQ.range, speed = SpellQ.speed, type = "DelayLine", width = SpellQ.width*2})
+	end
+end
+
 function Menu()
 BardMenu = scriptConfig("Bard Menu", "BardLOL")
 	BardMenu:addSubMenu("Combo Settings", "combo")
@@ -190,16 +238,73 @@ BardMenu = scriptConfig("Bard Menu", "BardLOL")
 		BardMenu.combo:addParam("WOther", "Heal others at life", SCRIPT_PARAM_SLICE, 30, 0, 90, 0) 
 	BardMenu:addSubMenu("Harass Settings", "harass") 
 		BardMenu.harass:addParam("qMana", "Use Q harass if  mana is above", SCRIPT_PARAM_SLICE, 35, 0, 101, 0) 
-	
-	BardMenu:addSubMenu("General Settings", "sett")
-		BardMenu.sett:addParam("sel", "   Focus Selected Target", SCRIPT_PARAM_ONOFF, true) 
-		BardMenu.sett:addParam("Target", "   Target Mode:", SCRIPT_PARAM_LIST, 3, { "Less Cast", "Near Mouse", "Less Cast Priority" })
-		BardMenu.sett:addParam("debug", "   Debug", SCRIPT_PARAM_ONOFF, false)
+	BardMenu:addSubMenu("Ultimate Settings", "ult") 
+		BardMenu.ult:addParam("RCount", "Use R if # enemies near =", SCRIPT_PARAM_SLICE, 3, 1, 5, 0) 
+		BardMenu.ult:addParam("RSelf", "Use R if your health <", SCRIPT_PARAM_SLICE, 75, 0, 101, 0)
+		BardMenu.ult:addParam("ROther", "Use R if ally health <", SCRIPT_PARAM_SLICE, 65, 0, 101, 0)
 		
+	BardMenu:addSubMenu("General Settings", "sett")
+		BardMenu.sett:addParam("sel", "Focus Selected Target", SCRIPT_PARAM_ONOFF, true) 
+		BardMenu.sett:addParam("Target", "Target Mode:", SCRIPT_PARAM_LIST, 3, { "Less Cast", "Near Mouse", "Less Cast Priority" })
+		BardMenu.sett:addParam("pred", "Predict Mode:", SCRIPT_PARAM_LIST, 1, { "VPrediction", "DPrediction", "HPrediction", "FHPrediction", "KPrediction"})
+		
+		function fhPredOn()
+			if FHPrediction then
+				fhQ = {range = SpellQ.range, speed = SpellQ.speed, delay = SpellQ.delay, radius = SpellQ.width}
+				fhPredEnabled = true
+				return true
+			end
+		end
+			
+		local hpOn = false
+		local dpOn = false
+		local fhOn = false
+		local kpOn = false
+		
+		if fhPredOn() then
+			BardMenu.sett.pred = 4
+			fhOn = true
+		end
+		if BardMenu.sett.pred == 3 then
+			hPredOn()
+			hpOn = true
+		elseif BardMenu.sett.pred == 2 then
+			dPredOn()
+			if dpEnabled then
+				lineSS = LineSS(SpellQ.speed, SpellQ.range, SpellQ.width, 250, math.huge)
+				DP:bindSS("Q",lineSS,50)
+			end
+			dpOn = true
+		elseif BardMenu.sett.pred == 5 then
+			kPredOn()
+			kpOn = true
+		end
+		
+		local function predChange(set)
+			if not hpOn and set == 3 then
+				hpOn = true
+				hPredOn()
+			elseif not kpOn and set == 5 then
+				kpOn = true
+				kPredOn()
+			elseif not dpOn and set == 2 then
+				dPredOn()
+				if dpEnabled then
+					lineSS = LineSS(SpellQ.speed, SpellQ.range, SpellQ.width, 250, math.huge)
+					DP:bindSS("Q",lineSS,50)
+				end
+				dpOn = true
+			elseif not fhOn and set == 4 then
+				fhPredOn()
+				fhOn = true
+			end
+		end
+		
+		BardMenu.sett:setCallback("pred", predChange)
 		BardMenu.sett:addSubMenu("   Draw Settings", "drawing") 
 			BardMenu.sett.drawing:addParam("mDraw", "Disable All Range Draws", SCRIPT_PARAM_ONOFF, false) 
 			BardMenu.sett.drawing:addParam("Target", "Draw Circle on Target", SCRIPT_PARAM_ONOFF, true)  
-			BardMenu.sett.drawing:addParam("aaDraw", "Draw AA Range", SCRIPT_PARAM_ONOFF, true)
+			BardMenu.sett.drawing:addParam("aaDraw", "Draw AA Range", SCRIPT_PARAM_ONOFF, false)
 			BardMenu.sett.drawing:addParam("hitDraw", "Draw My Hitbox", SCRIPT_PARAM_ONOFF, true)
 			BardMenu.sett.drawing:addParam("qDraw", "Draw (Q) Range", SCRIPT_PARAM_ONOFF, true) 
 			BardMenu.sett.drawing:addParam("chime", "Draw Neareset Chime", SCRIPT_PARAM_ONOFF, true) 
@@ -238,7 +343,7 @@ function OnTick()
 	if HarassKey and Target then
 		HarassMode(Target)
 	end
-
+	CastR()
 
 	if exhaust and BardMenu.keys.exh then 
 		if exhaust.slot then
@@ -275,8 +380,10 @@ function OnProcessSpell(unit, spell)
 end
 function TickChecks()
 	myMana = (myHero.mana/myHero.maxMana )*100
-	SpellQ.ready = (myHero:CanUseSpell(0) == 0)
-	SpellW.ready = (myHero:CanUseSpell(1) == 0)
+	SpellQ.ready = myHero:CanUseSpell(0) == 0
+	SpellW.ready = myHero:CanUseSpell(1) == 0
+	SpellE.ready = myHero:CanUseSpell(2) == 0
+	SpellR.ready = myHero:CanUseSpell(3) == 0
 	Target = GetCustomTarget()
 	TargetSelectorMode()
 end
@@ -483,7 +590,7 @@ function CastW()
 			end
 		end
 		for i, ally in pairs(sAllies) do
-			if GetDistance(ally) < SpellW.range - 100 and getHealthP(ally) < BardMenu.combo.WSelf/100 then
+			if GetDistance(ally) < SpellW.range - 100 and getHealthP(ally) < BardMenu.combo.WOther/100 then
 				local enemy = findClosestEnemy(myHero)
 				if ValidTarget(enemy, 600) then
 					CastSpell(1, ally)
@@ -509,10 +616,66 @@ function findClosestEnemy(obj)
 	return closestEnemy
 end
 
+function CountEnemiesNearUnitReg(unit, range)
+	local count = 0
+	for i, enemy in pairs(sEnemies) do
+		if not enemy.dead and enemy.visible then
+			if  GetDistanceSqr(unit, enemy) < range * range  then
+				count = count + 1
+			end
+		end
+	end
+	return count
+end
+
+function CastR()
+	if not SpellR.ready then return end
+	
+	if getHealthP(myHero) < BardMenu.ult.RSelf/100 then
+		if CountEnemiesNearUnitReg(myHero, 550) >= BardMenu.ult.RCount then
+			local pos = vPred:GetPredictedPos(myHero, 0.5)
+			CastSpell(3, pos.x, pos.z)
+		end
+	end
+	
+	for i, ally in pairs(sAllies) do
+		if GetDistance(ally) < SpellR.range - 1200 and getHealthP(ally) < BardMenu.ult.ROther/100 then
+			if CountEnemiesNearUnitReg(ally, 550) >= BardMenu.ult.RCount then
+				local pos = vPred:GetPredictedPos(ally, 1)
+				CastSpell(3, pos.x, pos.z)
+			end
+		end
+	end
+end
+function PredictionSuite(unit, delay, width, range, speed, from, collision)
+	if not ValidTarget(unit) then return end
+	if BardMenu.sett.pred == 3 and hpEnabled then
+		local QPos, QHitChance = HPred:GetPredict(HP_Q, unit, myHero, false)
+		return QPos, QHitChance + 1
+	elseif BardMenu.sett.pred == 5 and kpEnabled then
+		local CastPosition, Hitchance = KPred:GetPrediction(KP_Q, unit, myHero)
+		return CastPosition, Hitchance
+	elseif BardMenu.sett.pred == 2 and dpEnabled then
+		local c = collision and 0 or math.huge
+		local state, hitPos, perc = DP:predict("Q",unit)
+		if state == SkillShot.STATUS.SUCCESS_HIT then
+			return hitPos, 2
+		else
+			return hitPos, 0
+		end
+	elseif BardMenu.sett.pred == 4 and fhPredEnabled then
+		local pos, hc, info = FHPrediction.GetPrediction(fhQ, unit)
+		return pos, hc + 1
+	else
+		local CastPosition, Hitchance, Position = vPred:GetLineCastPosition(unit, delay, width, range+ 150, speed, from, collision)
+		return CastPosition, Hitchance
+	end
+end
+
 function CastQ(unit)
 	if not SpellQ.ready or not ValidTarget(unit) then return end
 
-	local CastPosition, Hitchance = vPred:GetLineCastPosition(unit, SpellQ.delay, SpellQ.width, SpellQ.range, SpellQ.speed, myHero, true)
+	local CastPosition, Hitchance = PredictionSuite(unit, SpellQ.delay, SpellQ.width, SpellQ.range, SpellQ.speed, myHero, true)
 	if CastPosition then 
 		local dp = GetDistance(myHero.pos, CastPosition)
 		if dp < SpellQ.range then
