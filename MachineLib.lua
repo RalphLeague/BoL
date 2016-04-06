@@ -28,6 +28,7 @@ function MachineLib:__init()
 	
 		--Recall
 		self.recallHeader = self.lolPatch == 1 and 0x009B or 263
+		self.recallPos1 = self.lolPatch == 1 and 56 or 55
 		self.recallPos2 = self.lolPatch == 1 and 6 or 31
 
 	
