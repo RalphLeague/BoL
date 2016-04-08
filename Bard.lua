@@ -1,4 +1,4 @@
-local version = 0.92
+local ver = 0.93
 
 if myHero.charName ~= "Bard" then return end
 
@@ -8,11 +8,11 @@ function CheckOrbwalk()
 	 if _G.Reborn_Loaded and not _G.Reborn_Initialised then
         DelayAction(CheckOrbwalk, 1)
     elseif _G.Reborn_Initialised then
-        sacused = true
+        sacUsed = true
 		BardMenu.Orbwalking:addParam("info11","SAC Detected", SCRIPT_PARAM_INFO, "")
     elseif _G.MMA_IsLoaded then
 		BardMenu.Orbwalking:addParam("info11","MMA Detected", SCRIPT_PARAM_INFO, "")
-		mmaused = true
+		mmaUsed = true
 	elseif _Pewalk then
 		BardMenu.Orbwalking:addParam("info11","Pewalk Detected", SCRIPT_PARAM_INFO, "")
 		pewUsed = true
@@ -30,7 +30,7 @@ function CheckOrbwalk()
 			if FileExist(LIB_PATH.."SxOrbWalk.lua") or FileExist(LIB_PATH.."SxOrbwalk.lua") then
 				require "SxOrbWalk"
 				SxOrb:LoadToMenu(BardMenu.Orbwalking, false) 
-				sxorbused = true
+				sxorbUsed = true
 				DelayAction(function()		
 					if SxOrb.Version < 3.1 then
 						Print("Your SxOrbWalk library is outdated, please get the latest version!")
@@ -49,7 +49,7 @@ end
 DelayAction(CheckOrbwalk, 4)
 function Print(message) print("<font color=\"#FF0066\"><b>Ralphlol's Bard:</font> </b><font color=\"#FFFFFF\">" .. message) end
 
-Print("Version "..version.." loaded")
+Print("Version "..ver.." loaded")
 
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
@@ -66,7 +66,20 @@ local function IsOnScreen(spot)
 end
 
 function OnLoad()
+	local ToUpdate = {}
+    ToUpdate.Version = ver
+    ToUpdate.UseHttps = true
+    ToUpdate.Host = "raw.githubusercontent.com"
+    ToUpdate.VersionPath = "/RalphLeague/BoL/master/Bard.version"
+    ToUpdate.ScriptPath =  "/RalphLeague/BoL/master/Bard.lua"
+    ToUpdate.SavePath = SCRIPT_PATH.._ENV.FILE_NAME
+    ToUpdate.CallbackUpdate = function(NewVersion,OldVersion) Print("Updated to v"..NewVersion) end
+    ToUpdate.CallbackNoUpdate = function(OldVersion) Print("No Updates Found") end
+    ToUpdate.CallbackNewVersion = function(NewVersion) Print("New Version found ("..NewVersion.."). Please wait until its downloaded") end
+    ToUpdate.CallbackError = function(NewVersion) Print("Error while Downloading. Please try again.") end
+    Bard_07(ToUpdate.Version,ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
 
+	
 	ItemNames				= {
 		[3303]				= "ArchAngelsDummySpell",
 		[3007]				= "ArchAngelsDummySpell",
@@ -244,6 +257,7 @@ BardMenu = scriptConfig("Bard Menu", "BardLOL")
 		BardMenu.ult:addParam("ROther", "Use R if ally health <", SCRIPT_PARAM_SLICE, 65, 0, 101, 0)
 		
 	BardMenu:addSubMenu("General Settings", "sett")
+		BardMenu.sett:addParam("afkH", "AFK Heal Spots", SCRIPT_PARAM_ONOFF, true)
 		BardMenu.sett:addParam("sel", "Focus Selected Target", SCRIPT_PARAM_ONOFF, true) 
 		BardMenu.sett:addParam("Target", "Target Mode:", SCRIPT_PARAM_LIST, 3, { "Less Cast", "Near Mouse", "Less Cast Priority" })
 		BardMenu.sett:addParam("pred", "Predict Mode:", SCRIPT_PARAM_LIST, 1, { "VPrediction", "DPrediction", "HPrediction", "FHPrediction", "KPrediction"})
@@ -312,11 +326,12 @@ BardMenu = scriptConfig("Bard Menu", "BardLOL")
 	BardMenu:addSubMenu("Orbwalking Settings", "Orbwalking") 	
 		
 	BardMenu:addSubMenu("Keybindings", "keys") 
-		BardMenu.keys:addParam("comboKey", "Full Combo Key (SBTW)", SCRIPT_PARAM_ONKEYDOWN, false, 32) 
-		BardMenu.keys:addParam("harassKey", "Harass Key", SCRIPT_PARAM_ONKEYDOWN, false, GetKey("C")) 
+		BardMenu.keys:addParam("info51","Combat Keys are connected to your orbwalker keys.", SCRIPT_PARAM_INFO, "")
+		BardMenu.keys:addParam("info51","", SCRIPT_PARAM_INFO, "")
 		if exhaust then	
 			BardMenu.keys:addParam("exh", "Exhaust Key", SCRIPT_PARAM_ONKEYDOWN, false, GetKey(exhaust.key)) 
 		end
+		--BardMenu.keys:addParam("tunnel", "Tunnel Key", SCRIPT_PARAM_ONKEYDOWN, false, GetKey("G")) 
 
 	TSex = TargetSelector(TARGET_PRIORITY, 600, DAMAGE_MAGIC)
 		
@@ -325,9 +340,62 @@ BardMenu = scriptConfig("Bard Menu", "BardLOL")
 	TargetSelector.name = "Bard"
 end
 
+function IsCombo()
+	if sacUsed and _G.AutoCarry.Keys.AutoCarry then
+		return true
+	elseif sxorbUsed and SxOrb.isFight then
+		return true
+	elseif mmaUsed and _G.MMA_IsOrbwalking() then
+		return true
+	elseif norbUsed and _G.NebelwolfisOrbWalker.Config.k.Combo then
+		return true
+	elseif pewUsed and _Pewalk.GetActiveMode()["Carry"] then
+		return true
+	end
+end
+function IsHarass()
+	if sacUsed and _G.AutoCarry.Keys.MixedMode then
+		return true
+	elseif sxorbUsed and SxOrb.isHarass then
+		return true
+	elseif mmaUsed and _G.MMA_IsDualCarrying() then
+		return true
+	elseif norbUsed and _G.NebelwolfisOrbWalker.Config.k.Harass then
+		return true
+	elseif pewUsed and _Pewalk.GetActiveMode()["Mixed"] then
+		return true
+	end
+end
+function IsLaneclear()
+	if sacUsed and _G.AutoCarry.Keys.LaneClear then
+		return true
+	elseif sxorbUsed and SxOrb.isLaneClear then
+		return true
+	elseif mmaUsed and _G.MMA_IsLaneClearing() then
+		return true
+	elseif norbUsed and _G.NebelwolfisOrbWalker.Config.k.LaneClear then
+		return true
+	elseif pewUsed and _Pewalk.GetActiveMode()["LaneClear"] then
+		return true
+	end
+end
+function IsLastHit()
+	if sacUsed and _G.AutoCarry.Keys.LastHit then
+		return true
+	elseif sxorbUsed and SxOrb.isLastHit then
+		return true
+	elseif mmaUsed and _G.MMA_IsLastHitting() then
+		return true
+	elseif norbUsed and _G.NebelwolfisOrbWalker.Config.k.LastHit then
+		return true
+	elseif pewUsed and _Pewalk.GetActiveMode()["Farm"] then
+		return true
+	end
+end
+
 function OnTick()
-	ComboKey			= BardMenu.keys.comboKey
-	HarassKey			= BardMenu.keys.harassKey
+	ComboKey			= IsCombo()
+	HarassKey			= IsHarass()
 	Debug               = BardMenu.sett.debug
 	
 	TickChecks()
@@ -362,6 +430,12 @@ function OnTick()
 			lasttime[ c.networkID ] = os.clock() 
 		end
 	end
+	if BardMenu.sett.afkH then
+		afkHeal()
+	end
+	--if BardMenu.keys.tunnel then
+	--	doTunnel()
+	--end
 end
 function exhFunction(unit)
 	moveToCursor()
@@ -370,7 +444,7 @@ end
 
 function OnProcessSpell(unit, spell)
 	if not unit or not unit.valid then return end
-	
+
 	if SpellQ.ready and spell.name:lower():find("deceive") and GetDistance(spell.endPos, myHero.pos) < SpellQ.range then
 		local cPos = spell.endPos
 		if Debug then Print("Casting Q on "..spell.name) end
@@ -388,8 +462,6 @@ function TickChecks()
 	TargetSelectorMode()
 end
 
-
-
 function GetCustomTarget()
 	if ValidTarget(SelectedTarget, 1000) and (Ignore == nil or (Ignore.networkID ~= SelectedTarget.networkID)) then
 		return SelectedTarget
@@ -401,7 +473,46 @@ function GetCustomTarget()
 		return nil
 	end
 end
-local chimes = {}
+
+function notCombat()
+	return not IsCombo() and not IsHarass() and not IsLaneclear() and not IsLastHit()
+end
+
+local healSpots = {
+	team1 = {
+		Vector(10988,49,1302),
+		Vector(10910,49,1050),
+		Vector(11031,49,1333),
+		Vector(12324,49,1218), --bush
+		Vector(12694,49,1475),
+	},
+	team2 = {
+		Vector(13618,49,2736),
+		Vector(13485,49,2395),	
+		Vector(13789,49,3903),
+		Vector(13395,49,4248),
+	}
+}
+local theta2 = math.pi/180
+function afkHeal()
+	if SpellW.ready and myMana > 85 and notCombat() then
+		local ene = findClosestEnemy(myHero)
+		if not ene or GetDistance(ene) > 1200 then
+			if myHero.team == 100 then
+				for i, spot in pairs(healSpots.team1) do
+					local a = (math.random()* 360)*theta2
+					local randomSpot = Vector(spot.x + 100 * math.cos(a), spot.y, spot.z - 100 * math.sin(a))
+					if GetDistance(randomSpot) <= SpellW.range and GetDistance(randomSpot) > 150 then
+						CastSpell(1, randomSpot.x, randomSpot.z)
+						return
+					end
+				end
+			else
+
+			end
+		end
+	end
+end
 
 --WINDOW_H
 --WINDOW_W
@@ -411,6 +522,8 @@ function DrawRectangleAL(x, y, w, h, color)
     Points[2] = D3DXVECTOR2(math.floor(x + w), math.floor(y))
     DrawLines2(Points, math.floor(h), color)
 end
+
+local chimes = {}
 function drawChimes()
 	local closest
 	local closestD
@@ -464,7 +577,44 @@ function drawChimes()
 		end
 	end
 end
+
+local tunnels = {
+	{start = Vector(316,183,660), stop = Vector(496.036,49,3386.09423)},
+	{start = Vector(846,178,362), stop = Vector(995.6557,173.704,371.14862)},
+	{start = Vector(10988,49,1302), stop = Vector(10988,49,1302)},
+	{start = Vector(10988,49,1302), stop = Vector(10988,49,1302)},
+}
+if GetGame().map.shortName ~= "summonerRift" then
+	tunnels = {}
+end
+
+function doTunnel()
+	for x, tunnel in pairs(tunnels) do
+		local s = tunnel.start
+		local e = tunnel.stop
+		if GetDistance(s) < 10 then
+			if SpellE.ready then
+				--local adjusted = Vector(myHero) + (e - Vector(myHero)):normalized() * 50
+				CastSpell(2, e.x, e.z)
+				return
+			end
+		elseif GetDistance(mousePos, s) < 100 then
+			myHero:MoveTo(s.x, s.z)
+			return
+		end
+	end
+	moveToCursor()
+end
 function OnDraw()
+	--[[for x, tunnel in pairs(tunnels) do
+		local s = tunnel.start
+		if GetDistanceSqr(s) < 7000*7000 then
+			local d = GetDistanceSqr(s, mousePos) <= 125*125
+			local spotcolor = d and ARGB(255, 0, 255, 0) or  ARGB(255, 255, 255, 0)
+			DrawCircle3D(s.x, s.y, s.z, 75, 2, spotcolor, 45)
+			DrawText3D('G', s.x, s.y, s.z, 30, spotcolor, true)
+		end
+	end]]
 	if BardMenu.sett.drawing.chime then
 		drawChimes()
 	end
@@ -722,13 +872,19 @@ function CastQ(unit)
 	end
 end
 
-function OnWndMsg(Msg, Key)
+function WndMsg(Msg, Key)
 --print(Msg)
 --print(Key)
 	if Msg == WM_LBUTTONUP then
 		if Debug then
 			--print(GetSpellData(_R).channelDuration)
 		end
+			--local a = Vector(995.6557,173.704,371.14862)
+			
+			--local vec = D3DXVECTOR3(995.6557,173.704,371.14862)
+			--CastSpell2(2, vec)
+			--CastSpell(2, a.x, a.y, a.z)
+			--print(Vector(mousePos))
 	end
 	
 	if Msg == WM_LBUTTONDOWN and BardMenu.sett.sel then  --From Honda
@@ -753,10 +909,13 @@ function OnWndMsg(Msg, Key)
 		end
 	end
 end
+AddMsgCallback(function(Msg,Key) WndMsg(Msg,Key) end)
 
 function moveToCursor()
-	local MouseMove = Vector(myHero) + (Vector(mousePos) - Vector(myHero)):normalized() * 500
-	myHero:MoveTo(MouseMove.x, MouseMove.z)	
+	if notCombat() then
+		local MouseMove = Vector(myHero) + (Vector(mousePos) - Vector(myHero)):normalized() * 500
+		myHero:MoveTo(MouseMove.x, MouseMove.z)	
+	end
 end
 
 
@@ -772,7 +931,7 @@ end
 
 function OnCreateObj(obj)
 	if not obj or not obj.valid then return end
-	--if GetDistance(obj) < 1500 then print(obj.name.." "..GetDistance(obj)) end
+	--if GetDistance(obj) < 333 then print(obj.name.." "..GetDistance(obj)) end
 	if obj.name:lower():find('chime.troy') then
 		table.insert(chimes, obj)
 	end
@@ -781,8 +940,6 @@ function OnCreateObj(obj)
 		--if obj.name:lower():find('q_aoe_resolve.') then
 		--	qReturn = obj
 		--end
-
-
 	end
 end
 
@@ -1007,4 +1164,197 @@ function GetMinionCollision(pStart, pEnd, unit) --From Collision 1.1.1 by Klokje
 		end
 	end
 	if #mCollision == 0 then return false, mCollision else return true, mCollision end
+end
+
+do --Updater
+class "Bard_07"
+function Bard_07:__init(LocalVersion,UseHttps, Host, VersionPath, ScriptPath, SavePath, CallbackUpdate, CallbackNoUpdate, CallbackNewVersion,CallbackError)
+    self.LocalVersion = LocalVersion
+    self.Host = Host
+    self.VersionPath = '/BoL/TCPUpdater/GetScript'..(UseHttps and '5' or '6')..'.php?script='..self:Base64Encode(self.Host..VersionPath)..'&rand='..math.random(99999999)
+    self.ScriptPath = '/BoL/TCPUpdater/GetScript'..(UseHttps and '5' or '6')..'.php?script='..self:Base64Encode(self.Host..ScriptPath)..'&rand='..math.random(99999999)
+    self.SavePath = SavePath
+    self.CallbackUpdate = CallbackUpdate
+    self.CallbackNoUpdate = CallbackNoUpdate
+    self.CallbackNewVersion = CallbackNewVersion
+    self.CallbackError = CallbackError
+    AddDrawCallback(function() self:OnDraw() end)
+    self:CreateSocket(self.VersionPath)
+    self.DownloadStatus = 'Connect to Server for VersionInfo'
+    AddTickCallback(function() self:GetOnlineVersion() end)
+end
+
+function Bard_07:print(str)
+    print('<font color="#FFFFFF">'..os.clock()..': '..str)
+end
+
+function Bard_07:OnDraw()
+    if self.DownloadStatus ~= 'Downloading Script (100%)' and self.DownloadStatus ~= 'Downloading VersionInfo (100%)'then
+        DrawText('Download Status: '..(self.DownloadStatus or 'Unknown'),50,10,50,ARGB(0xFF,0xFF,0xFF,0xFF))
+    end
+end
+
+function Bard_07:CreateSocket(url)
+    if not self.LuaSocket then
+        self.LuaSocket = require("socket")
+    else
+        self.Socket:close()
+        self.Socket = nil
+        self.Size = nil
+        self.RecvStarted = false
+    end
+    self.LuaSocket = require("socket")
+    self.Socket = self.LuaSocket.tcp()
+    self.Socket:settimeout(0, 'b')
+    self.Socket:settimeout(99999999, 't')
+    self.Socket:connect('sx-bol.eu', 80)
+    self.Url = url
+    self.Started = false
+    self.LastPrint = ""
+    self.File = ""
+end
+
+function Bard_07:Base64Encode(data)
+    local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+    return ((data:gsub('.', function(x)
+        local r,b='',x:byte()
+        for i=8,1,-1 do r=r..(b%2^i-b%2^(i-1)>0 and '1' or '0') end
+        return r;
+    end)..'0000'):gsub('%d%d%d?%d?%d?%d?', function(x)
+        if (#x < 6) then return '' end
+        local c=0
+        for i=1,6 do c=c+(x:sub(i,i)=='1' and 2^(6-i) or 0) end
+        return b:sub(c+1,c+1)
+    end)..({ '', '==', '=' })[#data%3+1])
+end
+
+function Bard_07:GetOnlineVersion()
+    if self.GotScriptVersion then return end
+
+    self.Receive, self.Status, self.Snipped = self.Socket:receive(1024)
+    if self.Status == 'timeout' and not self.Started then
+        self.Started = true
+        self.Socket:send("GET "..self.Url.." HTTP/1.1\r\nHost: sx-bol.eu\r\n\r\n")
+    end
+    if (self.Receive or (#self.Snipped > 0)) and not self.RecvStarted then
+        self.RecvStarted = true
+        self.DownloadStatus = 'Downloading VersionInfo (0%)'
+    end
+
+    self.File = self.File .. (self.Receive or self.Snipped)
+    if self.File:find('</s'..'ize>') then
+        if not self.Size then
+            self.Size = tonumber(self.File:sub(self.File:find('<si'..'ze>')+6,self.File:find('</si'..'ze>')-1))
+        end
+        if self.File:find('<scr'..'ipt>') then
+            local _,ScriptFind = self.File:find('<scr'..'ipt>')
+            local ScriptEnd = self.File:find('</scr'..'ipt>')
+            if ScriptEnd then ScriptEnd = ScriptEnd - 1 end
+            local DownloadedSize = self.File:sub(ScriptFind+1,ScriptEnd or -1):len()
+            self.DownloadStatus = 'Downloading VersionInfo ('..math.round(100/self.Size*DownloadedSize,2)..'%)'
+        end
+    end
+    if self.File:find('</scr'..'ipt>') then
+        self.DownloadStatus = 'Downloading VersionInfo (100%)'
+        local a,b = self.File:find('\r\n\r\n')
+        self.File = self.File:sub(a,-1)
+        self.NewFile = ''
+        for line,content in ipairs(self.File:split('\n')) do
+            if content:len() > 5 then
+                self.NewFile = self.NewFile .. content
+            end
+        end
+        local HeaderEnd, ContentStart = self.File:find('<scr'..'ipt>')
+        local ContentEnd, _ = self.File:find('</sc'..'ript>')
+        if not ContentStart or not ContentEnd then
+            if self.CallbackError and type(self.CallbackError) == 'function' then
+                self.CallbackError()
+            end
+        else
+            self.OnlineVersion = (Base64Decode(self.File:sub(ContentStart + 1,ContentEnd-1)))
+            self.OnlineVersion = tonumber(self.OnlineVersion)
+            if self.OnlineVersion > self.LocalVersion then
+                if self.CallbackNewVersion and type(self.CallbackNewVersion) == 'function' then
+                    self.CallbackNewVersion(self.OnlineVersion,self.LocalVersion)
+                end
+                self:CreateSocket(self.ScriptPath)
+                self.DownloadStatus = 'Connect to Server for ScriptDownload'
+                AddTickCallback(function() self:DownloadUpdate() end)
+            else
+                if self.CallbackNoUpdate and type(self.CallbackNoUpdate) == 'function' then
+                    self.CallbackNoUpdate(self.LocalVersion)
+                end
+            end
+        end
+        self.GotScriptVersion = true
+    end
+end
+
+function Bard_07:DownloadUpdate()
+    if self.GotBard_07 then return end
+    self.Receive, self.Status, self.Snipped = self.Socket:receive(1024)
+    if self.Status == 'timeout' and not self.Started then
+        self.Started = true
+        self.Socket:send("GET "..self.Url.." HTTP/1.1\r\nHost: sx-bol.eu\r\n\r\n")
+    end
+    if (self.Receive or (#self.Snipped > 0)) and not self.RecvStarted then
+        self.RecvStarted = true
+        self.DownloadStatus = 'Downloading Script (0%)'
+    end
+
+    self.File = self.File .. (self.Receive or self.Snipped)
+    if self.File:find('</si'..'ze>') then
+        if not self.Size then
+            self.Size = tonumber(self.File:sub(self.File:find('<si'..'ze>')+6,self.File:find('</si'..'ze>')-1))
+        end
+        if self.File:find('<scr'..'ipt>') then
+            local _,ScriptFind = self.File:find('<scr'..'ipt>')
+            local ScriptEnd = self.File:find('</scr'..'ipt>')
+            if ScriptEnd then ScriptEnd = ScriptEnd - 1 end
+            local DownloadedSize = self.File:sub(ScriptFind+1,ScriptEnd or -1):len()
+            self.DownloadStatus = 'Downloading Script ('..math.round(100/self.Size*DownloadedSize,2)..'%)'
+        end
+    end
+    if self.File:find('</scr'..'ipt>') then
+        self.DownloadStatus = 'Downloading Script (100%)'
+        local a,b = self.File:find('\r\n\r\n')
+        self.File = self.File:sub(a,-1)
+        self.NewFile = ''
+        for line,content in ipairs(self.File:split('\n')) do
+            if content:len() > 5 then
+                self.NewFile = self.NewFile .. content
+            end
+        end
+        local HeaderEnd, ContentStart = self.NewFile:find('<sc'..'ript>')
+        local ContentEnd, _ = self.NewFile:find('</scr'..'ipt>')
+        if not ContentStart or not ContentEnd then
+            if self.CallbackError and type(self.CallbackError) == 'function' then
+                self.CallbackError()
+            end
+        else
+            local newf = self.NewFile:sub(ContentStart+1,ContentEnd-1)
+            local newf = newf:gsub('\r','')
+            if newf:len() ~= self.Size then
+                if self.CallbackError and type(self.CallbackError) == 'function' then
+                    self.CallbackError()
+                end
+                return
+            end
+            local newf = Base64Decode(newf)
+            if type(load(newf)) ~= 'function' then
+                if self.CallbackError and type(self.CallbackError) == 'function' then
+                    self.CallbackError()
+                end
+            else
+                local f = io.open(self.SavePath,"w+b")
+                f:write(newf)
+                f:close()
+                if self.CallbackUpdate and type(self.CallbackUpdate) == 'function' then
+                    self.CallbackUpdate(self.OnlineVersion,self.LocalVersion)
+                end
+            end
+        end
+        self.GotBard_07 = true
+    end
+end
 end
