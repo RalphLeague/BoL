@@ -1,4 +1,4 @@
-local ver = 0.93
+local ver = 0.94
 
 if myHero.charName ~= "Bard" then return end
 
@@ -167,7 +167,7 @@ end
 
 
 function Variables()
-	SpellQ = {speed = 1500, range = 900, delay = 0.25, width = 108, ready = false}
+	SpellQ = {speed = 1500, range = 900, delay = 0.25, width = 108, ready = false, dmg = function() return (35 + (GetSpellData(0).level*45) + (myHero.ap*0.65)) end}
 	SpellW = {speed = 1100, range = 800, delay = 0.25, width = 100, ready = false}
 	SpellE = {ready = false}
 	SpellR = {speed = 1500, range = 3400, delay = 0.25, width = 350, ready = false}
@@ -257,16 +257,21 @@ BardMenu = scriptConfig("Bard Menu", "BardLOL")
 		BardMenu.ult:addParam("ROther", "Use R if ally health <", SCRIPT_PARAM_SLICE, 65, 0, 101, 0)
 		
 	BardMenu:addSubMenu("General Settings", "sett")
+		BardMenu.sett:addParam("qlast", "Q farm minions out of AA", SCRIPT_PARAM_ONOFF, true)
+		BardMenu.sett:addParam("qclear", "Wave clear with Q", SCRIPT_PARAM_ONOFF, true)
 		BardMenu.sett:addParam("afkH", "AFK Heal Spots", SCRIPT_PARAM_ONOFF, true)
 		BardMenu.sett:addParam("sel", "Focus Selected Target", SCRIPT_PARAM_ONOFF, true) 
 		BardMenu.sett:addParam("Target", "Target Mode:", SCRIPT_PARAM_LIST, 3, { "Less Cast", "Near Mouse", "Less Cast Priority" })
 		BardMenu.sett:addParam("pred", "Predict Mode:", SCRIPT_PARAM_LIST, 1, { "VPrediction", "DPrediction", "HPrediction", "FHPrediction", "KPrediction"})
-		
-		function fhPredOn()
-			if FHPrediction then
-				fhQ = {range = SpellQ.range, speed = SpellQ.speed, delay = SpellQ.delay, radius = SpellQ.width}
-				fhPredEnabled = true
-				return true
+	
+		local function fhPredOn()
+			if FileExist(LIB_PATH.."FHPrediction.lua") then
+				require("FHPrediction")
+				if FHPrediction then
+					fhQ = {range = SpellQ.range, speed = SpellQ.speed, delay = SpellQ.delay, radius = SpellQ.width}
+					fhPredEnabled = true
+					return true
+				end
 			end
 		end
 			
@@ -275,11 +280,10 @@ BardMenu = scriptConfig("Bard Menu", "BardLOL")
 		local fhOn = false
 		local kpOn = false
 		
-		if fhPredOn() then
-			BardMenu.sett.pred = 4
+		if BardMenu.sett.pred == 4 then
+			fhPredOn()
 			fhOn = true
-		end
-		if BardMenu.sett.pred == 3 then
+		elseif BardMenu.sett.pred == 3 then
 			hPredOn()
 			hpOn = true
 		elseif BardMenu.sett.pred == 2 then
@@ -396,6 +400,7 @@ end
 function OnTick()
 	ComboKey			= IsCombo()
 	HarassKey			= IsHarass()
+	LastHitKey          = IsLastHit()
 	Debug               = BardMenu.sett.debug
 	
 	TickChecks()
@@ -407,9 +412,10 @@ function OnTick()
 		if  BardMenu.combo.bush then
 			bushfind()
 		end
-	end
-	if HarassKey and Target then
+	elseif HarassKey and Target then
 		HarassMode(Target)
+	elseif BardMenu.sett.qlast and LastHitKey and SpellQ.ready then
+		farming()
 	end
 	CastR()
 
@@ -437,9 +443,51 @@ function OnTick()
 	--	doTunnel()
 	--end
 end
+
+function farming()
+	enemyMinions:update()
+	for index, minion in pairs(enemyMinions.objects) do
+		if minion and minion.valid and not minion.dead then
+			local d = GetDistance(minion)
+			if d < SpellQ.range and d > myHero.range + myHero.boundingRadius + 75 and isQKill(minion) then
+				CastSpell(0, minion.x, minion.z)
+			end
+		end
+	end
+end
+
+function isQKill(unit)
+	local phealth = vPred:GetPredictedHealth(unit, .25 + GetDistance(unit)/SpellQ.speed)
+	local qDamage = SpellQ.dmg()
+
+	return phealth < qDamage and phealth > 0
+end
+
+function aaReset(aaTarget)
+	if not ValidTarget(aaTarget) then return end
+	
+	if  not Target and BardMenu.sett.qclear and IsLaneclear() and aaTarget.health > 2*myHero.totalDamage then
+		CastQ(aaTarget)
+	end
+end
+
 function exhFunction(unit)
 	moveToCursor()
 	CastSpell(exhaust.slot, unit)
+end
+
+
+function ProcessAttack(unit, spell)
+	if not spell or not unit or not unit.valid then return end
+	
+	if unit.isMe then
+		if spell.name:lower():find("attack") then
+			aaReset(myHero.spell.target)
+		end
+	end
+end
+if AddProcessAttackCallback then
+	AddProcessAttackCallback(function(unit, spell) ProcessAttack(unit, spell) end)
 end
 
 function OnProcessSpell(unit, spell)
@@ -605,7 +653,6 @@ function doTunnel()
 	end
 	moveToCursor()
 end
-function OnDraw()
 	--[[for x, tunnel in pairs(tunnels) do
 		local s = tunnel.start
 		if GetDistanceSqr(s) < 7000*7000 then
@@ -615,6 +662,7 @@ function OnDraw()
 			DrawText3D('G', s.x, s.y, s.z, 30, spotcolor, true)
 		end
 	end]]
+function OnDraw()
 	if BardMenu.sett.drawing.chime then
 		drawChimes()
 	end
