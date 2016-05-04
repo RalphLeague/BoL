@@ -1,4 +1,4 @@
---Library for Machine Series by Ralphlol 
+--Library for Machine Series by Ralphlol
 
 class 'MachineLib'
 function MachineLib:__init()
