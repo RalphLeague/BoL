@@ -1,4 +1,4 @@
-local ver = 0.94
+local ver = 0.95
 
 if myHero.charName ~= "Bard" then return end
 
@@ -414,7 +414,7 @@ function OnTick()
 		end
 	elseif HarassKey and Target then
 		HarassMode(Target)
-	elseif BardMenu.sett.qlast and LastHitKey and SpellQ.ready then
+	elseif BardMenu.sett.qlast and LastHitKey and SpellQ.ready and CountAlliesNearUnit(myHero, 800) == 0 then
 		farming()
 	end
 	CastR()
@@ -826,6 +826,14 @@ function CountEnemiesNearUnitReg(unit, range)
 	return count
 end
 
+function CountAlliesNearUnit(unit, range)
+	local count = 0
+	for i, ally in pairs(sAllies) do
+		if GetDistanceSqr(ally, unit) <= range * range and not ally.dead then count = count + 1 end
+	end
+	return count
+end
+
 function CastR()
 	if not SpellR.ready then return end
 	
@@ -881,6 +889,10 @@ function CastQ(unit)
 			if extend > 1 then
 				local extendedCollision = Vector(CastPosition) + (Vector(CastPosition) - Vector(myHero)):normalized() * (extend)
 				if Hitchance >= 2 then
+					if myHero.health/myHero.maxHealth < 0.4 or unit.health/unit.maxHealth < 0.4 then
+						CastSpell(0, CastPosition.x, CastPosition.z)
+						return
+					end
 					for i, enemy in pairs(sEnemies) do
 						if enemy ~= unit then
 							if vPred:CheckCol(extendedCollision, enemy, CastPosition, SpellQ.delay, SpellQ.width, SpellQ.range, SpellQ.speed, myHero) then
