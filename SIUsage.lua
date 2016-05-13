@@ -1,9 +1,9 @@
 --[[
 Summoner & Item Usage by Ralphlol
-Updated March 24th 2015
+Updated May 12th 2016
 ]]--
 
-local version = 1.27
+local version = 1.28
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
@@ -129,6 +129,7 @@ function OnLoad()
 		["TITANIC"]		= { id = 5000, range = 350, target = false},
 		["RanduinsOmen"]	= { id = 3143, range = 500, target = false},
 		["YGB"]			= { id = 3142, range = 600, target = false},
+		["HEX"]			= { id = 5555, range = 600, target = false},
 	}
 	___GetInventorySlotItem	= rawget(_G, "GetInventorySlotItem")
 	_G.GetInventorySlotItem	= GetSlotItem
@@ -169,7 +170,7 @@ function ItemMenu()
 		MainMenu:addSubMenu("Remove CC", "cc")
 			MainMenu.cc:addParam("Key", "Use While Pressed", SCRIPT_PARAM_ONKEYDOWN, false, 32)
 			MainMenu.cc:addParam("Always", "Use Always", SCRIPT_PARAM_ONOFF, true)
-			MainMenu.cc:addParam("Exhaust", "Remove Exhaust", SCRIPT_PARAM_ONOFF, false)		
+			--MainMenu.cc:addParam("Exhaust", "Remove Exhaust", SCRIPT_PARAM_ONOFF, false)		
 			if SummonerSlot then
 				MainMenu.cc:addParam("Summoner", "Use Cleanse Summoner", SCRIPT_PARAM_ONOFF, true) 
 			end
@@ -285,14 +286,29 @@ function Zhonya()
 	end
 end
 
-function CastZhonya()
-	local item = CheckItem("zhonyashourglass")
-	if item and myHero:CanUseSpell(item) == 0 then
-		CastSpell(item) 
-		return true
+function checkSpecific(unit, buffname)
+	if unit.buffCount then
+		for i = 1, unit.buffCount do
+			local buff = unit:getBuff(i)
+			if buff and buff.valid and buff.name then
+				if buff.name:lower():find(buffname) then
+					return true
+				end
+			end
+		end
 	end
-	if GetInventoryItemIsCastable(3040) then
-		CastItem(3040)
+end
+
+function CastZhonya()
+	if not myHero.dead and not checkSpecific("kindredrnodeathbuff") and not checkSpecific("judicatorinter") then
+		local item = CheckItem("zhonyashourglass")
+		if item and myHero:CanUseSpell(item) == 0 then
+			CastSpell(item) 
+			return true
+		end
+		if GetInventoryItemIsCastable(3040) then
+			CastItem(3040)
+		end
 	end
 end
 
@@ -463,7 +479,7 @@ function OnProcessSpell(unit, spell)
 	end
 	if spell.name:lower():find("zedr") and spell.target == myHero then
 		DelayAction(function()
-			UseItemsCC(myHero, true)
+			--UseItemsCC(myHero, true)
 			DelayAction(function()
 				CastZhonya()
 			end, 0.3)
@@ -476,8 +492,8 @@ function OnApplyBuff(source, unit, buff)
 	if unit.isMe and (MainMenu.cc.Always or MainMenu.cc.Key) then
 		if (source.charName == "Rammus" and buff.type ~= 8) or source.charName == "Alistar" or source.charName:lower():find("baron") or source.charName:lower():find("spiderboss") or source.charName == "LeeSin" or (source.charName == "Hecarim" and not buff.name:lower():find("fleeslow")) then return end	
 		if buff.name and ((not cleanse and buff.type == 24) or buff.type == 5 or buff.type == 11 or buff.type == 22 or buff.type == 21 or buff.type == 8)
-		or (buff.type == 10 and buff.name and buff.name:lower():find("fleeslow"))
-		or (MainMenu.cc.Exhaust and buff.name and buff.name:lower():find("summonerexhaust")) then
+		or (buff.type == 10 and buff.name and buff.name:lower():find("fleeslow")) then
+		--or (MainMenu.cc.Exhaust and buff.name and buff.name:lower():find("summonerexhaust")) then
 			if buff.name and buff.name:lower():find("caitlynyor") and CountEnemiesNearUnitReg(myHero, 700) == 0   then
 				return false
 			elseif not source.charName:lower():find("blitzcrank") then
@@ -566,6 +582,17 @@ function UseItems(unit, scary)
 					CastItem(Item.id, unit) return true
 				end
 			end
+		end
+	end
+
+	if GetDistance(unit) < 455 then
+		local ite = CheckItem('itemsofboltspellbase')
+		if ite then
+			CastSpell(ite, mousePos.x, mousePos.z)
+		end
+		local ite = CheckItem('itemwillboltspellbase')
+		if ite then
+			CastSpell(ite, unit.x, unit.z)
 		end
 	end
 end
@@ -853,6 +880,3 @@ function SIUsage_Update:DownloadUpdate()
         self.GotSIUsage_Update = true
     end
 end
-
-
-assert(load(Base64Decode("G0x1YVIAAQQEBAgAGZMNChoKAAAAAAAAAAAAAQIKAAAABgBAAEFAAAAdQAABBkBAAGUAAAAKQACBBkBAAGVAAAAKQICBHwCAAAQAAAAEBgAAAGNsYXNzAAQNAAAAU2NyaXB0U3RhdHVzAAQHAAAAX19pbml0AAQLAAAAU2VuZFVwZGF0ZQACAAAAAgAAAAgAAAACAAotAAAAhkBAAMaAQAAGwUAABwFBAkFBAQAdgQABRsFAAEcBwQKBgQEAXYEAAYbBQACHAUEDwcEBAJ2BAAHGwUAAxwHBAwECAgDdgQABBsJAAAcCQQRBQgIAHYIAARYBAgLdAAABnYAAAAqAAIAKQACFhgBDAMHAAgCdgAABCoCAhQqAw4aGAEQAx8BCAMfAwwHdAIAAnYAAAAqAgIeMQEQAAYEEAJ1AgAGGwEQA5QAAAJ1AAAEfAIAAFAAAAAQFAAAAaHdpZAAEDQAAAEJhc2U2NEVuY29kZQAECQAAAHRvc3RyaW5nAAQDAAAAb3MABAcAAABnZXRlbnYABBUAAABQUk9DRVNTT1JfSURFTlRJRklFUgAECQAAAFVTRVJOQU1FAAQNAAAAQ09NUFVURVJOQU1FAAQQAAAAUFJPQ0VTU09SX0xFVkVMAAQTAAAAUFJPQ0VTU09SX1JFVklTSU9OAAQEAAAAS2V5AAQHAAAAc29ja2V0AAQIAAAAcmVxdWlyZQAECgAAAGdhbWVTdGF0ZQAABAQAAAB0Y3AABAcAAABhc3NlcnQABAsAAABTZW5kVXBkYXRlAAMAAAAAAADwPwQUAAAAQWRkQnVnc3BsYXRDYWxsYmFjawABAAAACAAAAAgAAAAAAAMFAAAABQAAAAwAQACBQAAAHUCAAR8AgAACAAAABAsAAABTZW5kVXBkYXRlAAMAAAAAAAAAQAAAAAABAAAAAQAQAAAAQG9iZnVzY2F0ZWQubHVhAAUAAAAIAAAACAAAAAgAAAAIAAAACAAAAAAAAAABAAAABQAAAHNlbGYAAQAAAAAAEAAAAEBvYmZ1c2NhdGVkLmx1YQAtAAAAAwAAAAMAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAUAAAAFAAAABQAAAAUAAAAFAAAABQAAAAUAAAAFAAAABgAAAAYAAAAGAAAABgAAAAUAAAADAAAAAwAAAAYAAAAGAAAABgAAAAYAAAAGAAAABgAAAAYAAAAHAAAABwAAAAcAAAAHAAAABwAAAAcAAAAHAAAABwAAAAcAAAAIAAAACAAAAAgAAAAIAAAAAgAAAAUAAABzZWxmAAAAAAAtAAAAAgAAAGEAAAAAAC0AAAABAAAABQAAAF9FTlYACQAAAA4AAAACAA0XAAAAhwBAAIxAQAEBgQAAQcEAAJ1AAAKHAEAAjABBAQFBAQBHgUEAgcEBAMcBQgABwgEAQAKAAIHCAQDGQkIAx4LCBQHDAgAWAQMCnUCAAYcAQACMAEMBnUAAAR8AgAANAAAABAQAAAB0Y3AABAgAAABjb25uZWN0AAQRAAAAc2NyaXB0c3RhdHVzLm5ldAADAAAAAAAAVEAEBQAAAHNlbmQABAsAAABHRVQgL3N5bmMtAAQEAAAAS2V5AAQCAAAALQAEBQAAAGh3aWQABAcAAABteUhlcm8ABAkAAABjaGFyTmFtZQAEJgAAACBIVFRQLzEuMA0KSG9zdDogc2NyaXB0c3RhdHVzLm5ldA0KDQoABAYAAABjbG9zZQAAAAAAAQAAAAAAEAAAAEBvYmZ1c2NhdGVkLmx1YQAXAAAACgAAAAoAAAAKAAAACgAAAAoAAAALAAAACwAAAAsAAAALAAAADAAAAAwAAAANAAAADQAAAA0AAAAOAAAADgAAAA4AAAAOAAAACwAAAA4AAAAOAAAADgAAAA4AAAACAAAABQAAAHNlbGYAAAAAABcAAAACAAAAYQAAAAAAFwAAAAEAAAAFAAAAX0VOVgABAAAAAQAQAAAAQG9iZnVzY2F0ZWQubHVhAAoAAAABAAAAAQAAAAEAAAACAAAACAAAAAIAAAAJAAAADgAAAAkAAAAOAAAAAAAAAAEAAAAFAAAAX0VOVgA="), nil, "bt", _ENV))() ScriptStatus("PCFDGEGIHJJ") 
