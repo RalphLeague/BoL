@@ -1,4 +1,4 @@
-local ver = 0.95
+local ver = 0.96
 
 if myHero.charName ~= "Bard" then return end
 
@@ -167,7 +167,7 @@ end
 
 
 function Variables()
-	SpellQ = {speed = 1500, range = 900, delay = 0.25, width = 108, ready = false, dmg = function() return (35 + (GetSpellData(0).level*45) + (myHero.ap*0.65)) end}
+	SpellQ = {speed = 1600, range = 900, delay = 0.25, width = 108, ready = false, dmg = function() return (35 + (GetSpellData(0).level*45) + (myHero.ap*0.65)) end}
 	SpellW = {speed = 1100, range = 800, delay = 0.25, width = 100, ready = false}
 	SpellE = {ready = false}
 	SpellR = {speed = 1500, range = 3400, delay = 0.25, width = 350, ready = false}
@@ -195,6 +195,32 @@ function GetSlotItem(id, unit)
 		local item = unit:GetSpellData(slot).name
 		if ((#item > 0) and (item:lower() == name:lower())) then
 			return slot
+		end
+	end
+end
+
+function OnApplyBuff(source, unit, buff)
+	if not buff or not source or not source.valid or not unit or not unit.valid then return end
+	
+	if unit.team == myHero.team and BardMenu.mik[unit.charName] then
+		if (source.charName == "Rammus" and buff.type ~= 8) or source.charName == "Alistar" or source.charName:lower():find("baron") or source.charName:lower():find("spiderboss") or source.charName == "LeeSin" or (source.charName == "Hecarim" and not buff.name:lower():find("fleeslow")) then return end	
+		if buff.name and ((not cleanse and buff.type == 24) or buff.type == 5 or buff.type == 11 or buff.type == 22 or buff.type == 21 or buff.type == 8)
+		or (buff.type == 10 and buff.name and buff.name:lower():find("fleeslow")) then
+			if (source.charName == "Rammus" and buff.type ~= 8) or source.charName == "Alistar" or source.charName:lower():find("baron") or source.charName == "XinZhao" or source.charName:lower():find("spiderboss") or source.charName == "LeeSin" or (source.charName == "Hecarim" and not buff.name:lower():find("fleeslow")) then return end
+			if buff.name and buff.name:lower():find("caitlynyor") and CountEnemiesNearUnitReg(myHero, 700) == 0   then
+				return false
+			elseif not source.charName:lower():find("blitzcrank") then
+				UseMikael(unit)
+			end          
+		end                    
+	end  
+end
+
+function UseMikael(unit)
+	if GetDistance(unit) < 750 + myHero.boundingRadius and BardMenu.mik.health > unit.health/unit.maxHealth then
+		local item = GetSlotItem(3222, myHero)
+		if item then
+			CastSpell(item, unit)
 		end
 	end
 end
@@ -255,7 +281,13 @@ BardMenu = scriptConfig("Bard Menu", "BardLOL")
 		BardMenu.ult:addParam("RCount", "Use R if # enemies near =", SCRIPT_PARAM_SLICE, 3, 1, 5, 0) 
 		BardMenu.ult:addParam("RSelf", "Use R if your health <", SCRIPT_PARAM_SLICE, 75, 0, 101, 0)
 		BardMenu.ult:addParam("ROther", "Use R if ally health <", SCRIPT_PARAM_SLICE, 65, 0, 101, 0)
-		
+	BardMenu:addSubMenu("Mikael's Settings", "mik") 
+		BardMenu.mik:addParam("health", "Use if ally health below", SCRIPT_PARAM_SLICE, 75, 0, 101, 0)
+		BardMenu.mik:addParam("","", SCRIPT_PARAM_INFO, "")
+		BardMenu.mik:addParam("","          ---Whitelist---", SCRIPT_PARAM_INFO, "")
+		for i, ally in ipairs(sAllies) do
+			BardMenu.mik:addParam(ally.charName, "Use on "..ally.charName, SCRIPT_PARAM_ONOFF, true)
+		end
 	BardMenu:addSubMenu("General Settings", "sett")
 		BardMenu.sett:addParam("qlast", "Q farm minions out of AA", SCRIPT_PARAM_ONOFF, true)
 		BardMenu.sett:addParam("qclear", "Wave clear with Q", SCRIPT_PARAM_ONOFF, true)
@@ -324,7 +356,8 @@ BardMenu = scriptConfig("Bard Menu", "BardLOL")
 			BardMenu.sett.drawing:addParam("Target", "Draw Circle on Target", SCRIPT_PARAM_ONOFF, true)  
 			BardMenu.sett.drawing:addParam("aaDraw", "Draw AA Range", SCRIPT_PARAM_ONOFF, false)
 			BardMenu.sett.drawing:addParam("hitDraw", "Draw My Hitbox", SCRIPT_PARAM_ONOFF, true)
-			BardMenu.sett.drawing:addParam("qDraw", "Draw (Q) Range", SCRIPT_PARAM_ONOFF, true) 
+			BardMenu.sett.drawing:addParam("qDraw", "Draw (Q) Range", SCRIPT_PARAM_ONOFF, true)
+			BardMenu.sett.drawing:addParam("qLine", "Draw (Q) Line", SCRIPT_PARAM_ONOFF, true)			
 			BardMenu.sett.drawing:addParam("chime", "Draw Neareset Chime", SCRIPT_PARAM_ONOFF, true) 
 			
 	BardMenu:addSubMenu("Orbwalking Settings", "Orbwalking") 	
@@ -414,7 +447,7 @@ function OnTick()
 		end
 	elseif HarassKey and Target then
 		HarassMode(Target)
-	elseif BardMenu.sett.qlast and LastHitKey and SpellQ.ready and CountAlliesNearUnit(myHero, 800) == 0 then
+	elseif BardMenu.sett.qlast and LastHitKey and SpellQ.ready and CountAlliesNearUnit(myHero, 900) == 0 then
 		farming()
 	end
 	CastR()
@@ -436,12 +469,23 @@ function OnTick()
 			lasttime[ c.networkID ] = os.clock() 
 		end
 	end
-	if BardMenu.sett.afkH then
+	if BardMenu.sett.afkH and not checkSpecific(myHero, 'recall') then
 		afkHeal()
 	end
 	--if BardMenu.keys.tunnel then
 	--	doTunnel()
 	--end
+end
+
+function checkSpecific(unit, buffname)
+	for i = 1, unit.buffCount do
+		local buff = unit:getBuff(i)
+		if buff and buff.valid and buff.name then
+			if buff.name:lower():find(buffname) then
+				return true
+			end
+		end
+	end
 end
 
 function farming()
@@ -466,7 +510,7 @@ end
 function aaReset(aaTarget)
 	if not ValidTarget(aaTarget) then return end
 	
-	if  not Target and BardMenu.sett.qclear and IsLaneclear() and aaTarget.health > 2*myHero.totalDamage then
+	if not Target and BardMenu.sett.qclear and IsLaneclear() and aaTarget.health > 2*myHero.totalDamage then
 		CastQ(aaTarget)
 	end
 end
@@ -667,6 +711,17 @@ function OnDraw()
 		drawChimes()
 	end
 	
+	if Target and SpellQ.ready and BardMenu.sett.drawing.qLine then
+		local w = 65
+		local MouseMove = Vector(myHero) + (Vector(Target) - Vector(myHero)):normalized() * (450 + myHero.boundingRadius)
+		DrawLineBorder3D(MouseMove.x, myHero.y, MouseMove.z, myHero.x, myHero.y, myHero.z, w, ARGB(100, 206, 22, 22), 5)
+		DrawLineBorder3D(MouseMove.x, myHero.y, MouseMove.z, myHero.x, myHero.y, myHero.z, w, ARGB(115, 255, 255, 255), 2)
+		
+		local MouseMove = Vector(myHero) + (Vector(Target) - Vector(myHero)):normalized() * (950)
+		DrawLineBorder3D(MouseMove.x, myHero.y, MouseMove.z, myHero.x, myHero.y, myHero.z, w, ARGB(100, 206, 22, 22), 5)
+		DrawLineBorder3D(MouseMove.x, myHero.y, MouseMove.z, myHero.x, myHero.y, myHero.z, w, ARGB(115, 255, 255, 255), 2)
+	end
+		
 	if Debug then
 		if vPred then
 			local dp = GetDistance(myHero.pos, mousePos)
@@ -885,7 +940,7 @@ function CastQ(unit)
 	if CastPosition then 
 		local dp = GetDistance(myHero.pos, CastPosition)
 		if dp < SpellQ.range then
-			local extend = 400
+			local extend = 450
 			if extend > 1 then
 				local extendedCollision = Vector(CastPosition) + (Vector(CastPosition) - Vector(myHero)):normalized() * (extend)
 				if Hitchance >= 2 then
