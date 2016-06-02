@@ -1,9 +1,9 @@
 --[[
 Summoner & Item Usage by Ralphlol
-Updated May 12th 2016
+Updated June 2nd 2016
 ]]--
 
-local version = 1.28
+local version = 1.29
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
@@ -151,8 +151,6 @@ function GetCustomTarget()
 	TargetSelector:update()	
 	if ValidTarget(TargetSelector.target) and TargetSelector.target.type == myHero.type then
 		return TargetSelector.target
-	else
-		return nil
 	end
 end
 
@@ -204,13 +202,17 @@ function ItemMenu()
 				MainMenu.heal:addParam("ally", "Also use on ally", SCRIPT_PARAM_ONOFF, false)
 			end
 		end	
+		
+		if AddProcessAttackCallback and heal and MainMenu.heal.enable then
+			AddProcessAttackCallback(function(unit, spell) AProc(unit, spell) end)
+		end
 end
 
 function findClosestAlly(obj)
     local closestAlly = nil
     local currentAlly = nil
 	for i, currentAlly in pairs(sAllies) do
-        if currentAlly and not currentAlly.dead then
+        if currentAlly and currentAlly.valid and not currentAlly.dead then
             if closestAlly == nil then
                 closestAlly = currentAlly
 			end
@@ -234,21 +236,19 @@ function OnTick()
 	if MainMenu.nItems.zhon then
 		Zhonya()
 	end
-	if heal then
-		if ValidTarget(GetCustomTarget(), 1000) then
-			if MainMenu.heal.enable and myHero:CanUseSpell(heal) == 0 then
-				if myHero.level > 5 and myHero.health/myHero.maxHealth < MainMenu.heal.health/100 then
-					CastSpell(heal)
-				elseif  myHero.level < 6 and myHero.health/myHero.maxHealth < (MainMenu.heal.health/100)*.75 then
-					CastSpell(heal)
-				end
-				
-				if realheals and MainMenu.heal.ally then
-					local ally = findClosestAlly(myHero)
-					if ally and not ally.dead and GetDistance(ally) < 850 then
-						if  ally.health/ally.maxHealth < MainMenu.heal.health/100 then
-							CastSpell(heal)
-						end
+	if heal and ValidTarget(GetCustomTarget(), 1000) then
+		if MainMenu.heal.enable and myHero:CanUseSpell(heal) == 0 then
+			if myHero.level > 5 and myHero.health/myHero.maxHealth < MainMenu.heal.health/100 then
+				CastSpell(heal)
+			elseif  myHero.level < 6 and myHero.health/myHero.maxHealth < (MainMenu.heal.health/100)*.75 then
+				CastSpell(heal)
+			end
+			
+			if realheals and MainMenu.heal.ally then
+				local ally = findClosestAlly(myHero)
+				if ally and not ally.dead and GetDistance(ally) < 850 then
+					if  ally.health/ally.maxHealth < MainMenu.heal.health/100 then
+						CastSpell(heal)
 					end
 				end
 			end
@@ -332,7 +332,7 @@ function moveToCursor()
 end
 
 function OnUpdateBuff(unit, buff, stacks)
-	if not unit or not buff then return end
+	if not unit or not unit.valid or not buff then return end
 	if unit.isMe then
 		if buff.name:lower():find("regenerationpotion") or buff.name:lower():find("itemminiregenpotion") or buff.name:lower():find("crystalflask") then
 			potionOn = true
@@ -341,7 +341,7 @@ function OnUpdateBuff(unit, buff, stacks)
 end
 
 function OnRemoveBuff(unit, buff)
-	if not unit or not buff then return end
+	if not unit or not unit.valid or not buff then return end
 	if unit.isMe then
 		if buff.name:lower():find("regenerationpotion") or buff.name:lower():find("itemminiregenpotion") or buff.name:lower():find("crystalflask") then
 			potionOn = false
@@ -435,16 +435,12 @@ Buff Types
 ]]
 local lastTAttack = 0
 local tDamage = 1
-if AddProcessAttackCallback and heal and MainMenu.heal.enable then
-	AddProcessAttackCallback(function(unit, spell) AProc(unit, spell) end)
-end
-
 function AProc(unit, spell)
 	if not unit or not unit.valid or not spell then return end
-
+	
 	if spell.target and spell.target.type == myHero.type and spell.target.team == myHero.team and (spell.name:lower():find("_turret_chaos") or spell.name:lower():find("_turret_order")) and not (spell.name:lower():find("4") or spell.name:lower():find("3")) then
 		if GetDistance(unit) < 2000 then
-			if clock() - lastTAttack < 1.75 then
+			if os.clock() - lastTAttack < 1.75 then
 				if tDamage < 1.75 then
 					tDamage = tDamage + 0.375
 				else
@@ -454,7 +450,7 @@ function AProc(unit, spell)
 			else
 				tDamage = 1
 			end
-			lastTAttack = clock()
+			lastTAttack = os.clock()
 			
 			if myHero:CanUseSpell(heal) == 0 and spell.target.isMe then
 				local realDamage = unit.totalDamage / (((myHero.armor * 0.7) / 100) + 1)
@@ -524,7 +520,7 @@ end	]]
 function CountEnemiesNearUnitReg(unit, range)
 	local count = 0
 	for i, enemy in pairs(sEnemies) do
-		if not enemy.dead and enemy.visible then
+		if enemy and enemy.valid and not enemy.dead and enemy.visible then
 			if  GetDistanceSqr(unit, enemy) < range * range  then 
 				count = count + 1 
 			end
