@@ -1,4 +1,4 @@
-local ver = 0.96
+local ver = 0.961
 
 if myHero.charName ~= "Bard" then return end
 
@@ -17,7 +17,7 @@ function CheckOrbwalk()
 		BardMenu.Orbwalking:addParam("info11","Pewalk Detected", SCRIPT_PARAM_INFO, "")
 		pewUsed = true
 	elseif _G.NebelwolfisOrbWalkerLoaded then
-		KindredMenu.Orbwalking:addParam("info11","Nebel Orb Detected", SCRIPT_PARAM_INFO, "")
+		BardMenu.Orbwalking:addParam("info11","Nebel Orb Detected", SCRIPT_PARAM_INFO, "")
 		norbUsed = true
 	else
 		if FileExist(LIB_PATH.."Nebelwolfi's Orb Walker.lua") then
