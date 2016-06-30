@@ -1,7 +1,7 @@
 TestCrashRun = true
 --[[
 Ralphlol's Utility Suite
-Updated 3/2nd/2016
+Updated 6th/30th/2016
 ]]
 
 function Print(msg) print("<font color=\"#A51842\">Ralphlol's Utility Suite:  </font><font color=\"#FFFFFF\">"..msg) end
@@ -9,7 +9,7 @@ local sEnemies = GetEnemyHeroes()
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.Version = 1.25
+    ToUpdate.Version = 1.26
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/RalphlolUtilitySuite.version"
@@ -1267,12 +1267,14 @@ function recallDraw:RecvPacket(p)
 		--print("spell "..spellid1)
 		local bytes = {}
 		for i=4, 1, -1 do
-			bytes[i] = mLib.IDBytes[p:Decode1()]
+			bytes[i] = mLib.rBytes[p:Decode1()]
 		end
+		if not bytes[1] or not bytes[2] or not bytes[3] or not bytes[4] then return end
+		
 		local netID = bxor(lshift(band(bytes[1],0xFF),24),lshift(band(bytes[2],0xFF),16),lshift(band(bytes[3],0xFF),8),band(bytes[4],0xFF))
 		local o = objManager:GetObjectByNetworkId(DwordToFloat(netID))
-
 		if o and o.valid and o.type == 'AIHeroClient' and o.team == TEAM_ENEMY then
+			--print(o.charName)
 			p.pos = mLib.recallPos2
 			local str = ''
 			for i=1, p.size do
