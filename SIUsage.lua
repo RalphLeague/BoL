@@ -1,9 +1,11 @@
+_G.SIUsage = true
+
 --[[
 Summoner & Item Usage by Ralphlol
 Updated June 2nd 2016
 ]]--
 
-local version = 1.29
+local version = 1.3
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
