@@ -1,15 +1,18 @@
 TestCrashRun = true
+_G.RalphlolUtilitySuite = true
 --[[
 Ralphlol's Utility Suite
-Updated 6th/30th/2016
+Updated 7th/12th/2016
 ]]
 
 function Print(msg) print("<font color=\"#A51842\">Ralphlol's Utility Suite:  </font><font color=\"#FFFFFF\">"..msg) end
 local sEnemies = GetEnemyHeroes()
+local turrets = GetTurrets()
+local MainMenu = scriptConfig("Ralphlol's Utility Suite","UtilitySuite")
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.Version = 1.26
+    ToUpdate.Version = 1.27
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/RalphlolUtilitySuite.version"
@@ -21,9 +24,9 @@ function OnLoad()
     ToUpdate.CallbackError = function(NewVersion) Print("Error while Downloading. Please try again.") end
     RU_05(ToUpdate.Version,ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
 	
-	MainMenu = scriptConfig("Ralphlol's Utility Suite","UtilitySuite")
+	
 
-	turrets = GetTurrets()
+	
 	--if HookPackets then HookPackets() end
 	
 	local function fixMLIB(new, updateY, verm)
