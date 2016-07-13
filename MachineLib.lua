@@ -2,14 +2,14 @@
 
 class 'MachineLib'
 function MachineLib:__init()
-	self.version = 614
+	self.version = 614.1
 	
 	self.lolPatch = GetGameVersion and GetGameVersion():sub(1,4) == "6.14" and 1 or 2
 	self.notPresentPatch = GetGameVersion and GetGameVersion():sub(1,4) ~= "6.13" and GetGameVersion():sub(1,4) ~= "6.14"
 	self.cn = self.notPresentPatch
 	
 	--Send--
-		self.moveHeader = self.lolPatch == 1 and 274 or 279
+		self.moveHeader = self.lolPatch == 1 and 278 or 279
 		self.spellHeader = self.lolPatch == 1 and 90 or 303
 		
 		--cspell2
