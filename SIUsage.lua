@@ -2,10 +2,9 @@ _G.SIUsage = true
 
 --[[
 Summoner & Item Usage by Ralphlol
-Updated June 2nd 2016
 ]]--
 
-local version = 1.3
+local version = 1.31
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
@@ -111,10 +110,12 @@ function OnLoad()
 		[3350]				= "TrinketTotemLvl2",
 		[3085]              = "AtmasImpalerDummySpell",
 	}
+	
 	--[[Items = {
 		["QSS"]	        = { id = 3140, range = 2500 },
 		["MercScim"]	= { id = 3139, range = 2500 },
 	}]]
+	
 	Items = {
 		["ELIXIR"]      = { id = 2140, range = 2140, target = false},
 		["QSS"]	        = { id = 3140, range = 2500, target = false},
@@ -175,6 +176,13 @@ function ItemMenu()
 				MainMenu.cc:addParam("Summoner", "Use Cleanse Summoner", SCRIPT_PARAM_ONOFF, true) 
 			end
 			MainMenu.cc:addParam("delay", "Removal delay (ms)", SCRIPT_PARAM_SLICE, 0, 0, 400, 0)
+		MainMenu:addSubMenu("Mikael's Settings", "mik") 
+			MainMenu.mik:addParam("health", "Use if ally health below", SCRIPT_PARAM_SLICE, 75, 0, 101, 0)
+			MainMenu.mik:addParam("","", SCRIPT_PARAM_INFO, "")
+			MainMenu.mik:addParam("","          ---Whitelist---", SCRIPT_PARAM_INFO, "")
+			for i, ally in ipairs(sAllies) do
+				MainMenu.mik:addParam(ally.charName, "Use on "..ally.charName, SCRIPT_PARAM_ONOFF, true)
+			end
 		MainMenu:addSubMenu("Normal Items/Smite", "nItems")		
 			MainMenu.nItems:addParam("comboItems", "Use Items", SCRIPT_PARAM_ONOFF, true)
 			
@@ -235,9 +243,11 @@ function OnTick()
 			end
 		end
 	end
+	
 	if MainMenu.nItems.zhon then
 		Zhonya()
 	end
+	
 	if heal and ValidTarget(GetCustomTarget(), 1000) then
 		if MainMenu.heal.enable and myHero:CanUseSpell(heal) == 0 then
 			if myHero.level > 5 and myHero.health/myHero.maxHealth < MainMenu.heal.health/100 then
@@ -498,9 +508,27 @@ function OnApplyBuff(source, unit, buff)
 				UseItemsCC(myHero, true)
 			end          
 		end                    
-	end  
+	elseif not unit.isMe and unit.team == myHero.team and MainMenu.mik[unit.charName] then
+		if (source.charName == "Rammus" and buff.type ~= 8) or source.charName == "Alistar" or source.charName:lower():find("baron") or source.charName:lower():find("spiderboss") or source.charName == "LeeSin" or (source.charName == "Hecarim" and not buff.name:lower():find("fleeslow")) then return end	
+		if buff.name and ((not cleanse and buff.type == 24) or buff.type == 5 or buff.type == 11 or buff.type == 22 or buff.type == 21 or buff.type == 8)
+		or (buff.type == 10 and buff.name and buff.name:lower():find("fleeslow")) then
+			if buff.name and buff.name:lower():find("caitlynyor") and CountEnemiesNearUnitReg(myHero, 700) == 0   then
+				return false
+			elseif not source.charName:lower():find("blitzcrank") then
+				UseMikael(unit)
+			end          
+		end                    
+	end    
 end
 
+function UseMikael(unit)
+	if GetDistance(unit) < 750 + myHero.boundingRadius and MainMenu.mik.health > unit.health/unit.maxHealth then
+		local item = GetSlotItem(3222, myHero)
+		if item then
+			CastSpell(item, unit)
+		end
+	end
+end
 
 --[[function isCC(cleanse)
 	for i = 1, myHero.buffCount, 1 do      
