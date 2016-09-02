@@ -4,7 +4,7 @@ _G.SIUsage = true
 Summoner & Item Usage by Ralphlol
 ]]--
 
-local version = 1.31
+local version = 1.32
 local sEnemies = GetEnemyHeroes()
 local sAllies = GetAllyHeroes()
 local lastRemove = 0
@@ -171,7 +171,8 @@ function ItemMenu()
 		MainMenu:addSubMenu("Remove CC", "cc")
 			MainMenu.cc:addParam("Key", "Use While Pressed", SCRIPT_PARAM_ONKEYDOWN, false, 32)
 			MainMenu.cc:addParam("Always", "Use Always", SCRIPT_PARAM_ONOFF, true)
-			--MainMenu.cc:addParam("Exhaust", "Remove Exhaust", SCRIPT_PARAM_ONOFF, false)		
+			MainMenu.cc:addParam("Blind", "Remove Blind", SCRIPT_PARAM_ONOFF, false)	
+			
 			if SummonerSlot then
 				MainMenu.cc:addParam("Summoner", "Use Cleanse Summoner", SCRIPT_PARAM_ONOFF, true) 
 			end
@@ -499,7 +500,7 @@ function OnApplyBuff(source, unit, buff)
 	
 	if unit.isMe and (MainMenu.cc.Always or MainMenu.cc.Key) then
 		if (source.charName == "Rammus" and buff.type ~= 8) or source.charName == "Alistar" or source.charName:lower():find("baron") or source.charName:lower():find("spiderboss") or source.charName == "LeeSin" or (source.charName == "Hecarim" and not buff.name:lower():find("fleeslow")) then return end	
-		if buff.name and ((not cleanse and buff.type == 24) or buff.type == 5 or buff.type == 11 or buff.type == 22 or buff.type == 21 or buff.type == 8)
+		if buff.name and ((not cleanse and buff.type == 24) or buff.type == 5 or buff.type == 11 or buff.type == 22 or buff.type == 21 or buff.type == 8) or (buff.type == 25 and MainMenu.cc.Blind)
 		or (buff.type == 10 and buff.name and buff.name:lower():find("fleeslow")) then
 		--or (MainMenu.cc.Exhaust and buff.name and buff.name:lower():find("summonerexhaust")) then
 			if buff.name and buff.name:lower():find("caitlynyor") and CountEnemiesNearUnitReg(myHero, 700) == 0   then
