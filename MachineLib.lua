@@ -2,33 +2,33 @@
 
 class 'MachineLib'
 function MachineLib:__init()
-	self.version = 617.1
+	self.version = 618
 	
-	self.lolPatch = GetGameVersion and GetGameVersion():sub(1,4) == "6.17" and 1 or 2
-	self.notPresentPatch = GetGameVersion and GetGameVersion():sub(1,4) ~= "6.16" and GetGameVersion():sub(1,4) ~= "6.17"
+	self.lolPatch = GetGameVersion and GetGameVersion():sub(1,4) == "6.18" and 1 or 2
+	self.notPresentPatch = GetGameVersion and GetGameVersion():sub(1,4) ~= "6.17" and GetGameVersion():sub(1,4) ~= "6.18"
 	self.cn = self.notPresentPatch
 	
 	--Send--
 		self.moveHeader = self.lolPatch == 1 and 113 or 113
-		self.spellHeader = self.lolPatch == 1 and 126 or 229
+		self.spellHeader = self.lolPatch == 1 and 270 or 126
 		
 		--cspell2
-		self.cspell2Header = self.lolPatch == 1 and 307 or 299
+		self.cspell2Header = self.lolPatch == 1 and 375 or 307
 		self.cspell2Pos = self.lolPatch == 1 and 23 or 23
 		self.cspell2Byte = self.lolPatch == 1 and 0x40 or 0x40
 	
 	--Rsv--
-		self.goldHeader = self.lolPatch == 1 and 109 or 339
+		self.goldHeader = self.lolPatch == 1 and 109 or 109
 		
 		--Buy
-		self.bHeader = self.lolPatch == 1 and 0x0c or 135
+		self.bHeader = self.lolPatch == 1 and 0xE1 or 0x0c
 		self.bPos = self.lolPatch == 1 and 13 or 13
 		self.botrk = self.lolPatch == 1 and 250 or 250
 		self.IE = self.lolPatch == 1 and 183 or 183
 		self.Trinity = self.lolPatch == 1 and 84 or 84
 	
 		--Recall
-		self.recallHeader = self.lolPatch == 1 and 117 or 48
+		self.recallHeader = self.lolPatch == 1 and 257 or 117
 		self.recallPos1 = self.lolPatch == 1 and 80 or 80 --id
 		self.recallPos2 = self.lolPatch == 1 and  6 or 6
 
@@ -76,4 +76,10 @@ function MachineLib:Level(id)
 			lvlspell2(id)
 		end
 	end
+end
+
+function MachineLib:UserID()
+	local id = "%d+"
+	local userid = GetCommandLine():reverse():sub(2, GetCommandLine():reverse():find(" ==")):reverse()
+	return string.sub(userid, string.find(userid, id))
 end
