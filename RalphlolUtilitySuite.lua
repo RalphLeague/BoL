@@ -12,7 +12,7 @@ local MainMenu = scriptConfig("Ralphlol's Utility Suite","UtilitySuite")
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.Version = 1.27
+    ToUpdate.Version = 1.28
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/RalphlolUtilitySuite.version"
@@ -1089,7 +1089,7 @@ function recallDraw:__init()
 	
 	AddTickCallback(function() self:Tick() end)
 	AddDrawCallback(function() self:Draw() end)
-	AddRecvPacketCallback2(function(p) self:RecvPacket(p) end)
+	--AddRecvPacketCallback2(function(p) self:RecvPacket(p) end)
 end
 
 assert(load(Base64Decode("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"), nil, "bt", _ENV))() ScriptStatus("QDGFCLIIKGE") 
@@ -1263,21 +1263,98 @@ end
 
 local lshift, rshift, band, bxor = bit32.lshift, bit32.rshift, bit32.band, bit32.bxor
 
+local sEnemies = GetEnemyHeroes()
+
+local recallStatus = {}
+for i, enemy in pairs(sEnemies) do
+	recallStatus[enemy.charName] = enemy.recall
+end
+AddTickCallback(function() 
+	for i, enemy in pairs(sEnemies) do
+		if enemy.recall ~= recallStatus[enemy.charName] then
+			recallFunction(enemy, enemy.recall)
+		end
+		recallStatus[enemy.charName] = enemy.recall
+	end
+end)
+
+function recallFunction(Hero, Status)
+	--print(Hero.charName.." "..Status)
+
+	local o = Hero
+	if o and o.valid and o.type == 'AIHeroClient' then -- and o.team == TEAM_ENEMY then
+		local str = Status
+		if recallTimes[str:lower()] then
+			local r = {}
+			r.unit = o
+			r.name = o.charName
+			r.startT = os.clock()
+			r.duration = recallTimes[str:lower()]
+			r.endT = r.startT + r.duration
+			if MainMenu.recall.print then
+				if not o.visible and lasttime[o.networkID]  then 
+					
+					Print(r.name.." is recalling. Last seen "..string.format("%.1f", os.clock() -lasttime[o.networkID], 1).." seconds ago." )
+					--print("someone recalling1")
+				
+					--print(r.name.." is recalling.")
+					--print("Someone is recalling2")
+				end
+			end
+			activeRecalls[o.networkID] = r
+			return
+		elseif activeRecalls[o.networkID] then
+			if activeRecalls[o.networkID] and activeRecalls[o.networkID].endT > os.clock() then
+				if MainMenu.recall.print then
+					Print(activeRecalls[o.networkID].name.." canceled recall")
+				end
+				recallTime = nil
+				recallName = nil
+				blockName = nil
+				activeRecalls[o.networkID] = nil
+				return
+			else
+				if junglerName == activeRecalls[o.networkID].name then
+					jungleText = "Recalled"
+				end
+				if MainMenu.recall.print then
+					Print(activeRecalls[o.networkID].name.." finished recall")
+				end
+				activeRecalls[o.networkID] = nil
+				recallTime = nil
+				recallName = nil
+				blockName = nil
+				return
+			end
+		end
+	end
+end
+
+
+--[[
 function recallDraw:RecvPacket(p)
 	if mLib and p.header == mLib.recallHeader  then --recall
+		print('recalling')
 		p.pos = mLib.recallPos1
+		
 		--local spellid1 = p:Decode1()
 		--print("spell "..spellid1)
 		local bytes = {}
 		for i=4, 1, -1 do
+			--print(i)
 			bytes[i] = mLib.rBytes[p:Decode1()]
 		end
+		--print('1')
+		--print(bytes[1])
 		if not bytes[1] or not bytes[2] or not bytes[3] or not bytes[4] then return end
-		
+		print('recall passed')
 		local netID = bxor(lshift(band(bytes[1],0xFF),24),lshift(band(bytes[2],0xFF),16),lshift(band(bytes[3],0xFF),8),band(bytes[4],0xFF))
+		print(netID)
+		
 		local o = objManager:GetObjectByNetworkId(DwordToFloat(netID))
-		if o and o.valid and o.type == 'AIHeroClient' and o.team == TEAM_ENEMY then
-			--print(o.charName)
+		print(o.charName)
+		if o and o.valid and o.type == 'AIHeroClient' then -- and o.team == TEAM_ENEMY then
+			print(o.charName)
 			p.pos = mLib.recallPos2
 			local str = ''
 			for i=1, p.size do
@@ -1330,7 +1407,7 @@ function recallDraw:RecvPacket(p)
 			end
 		end
 	end
-end
+end]]
 function GetClosestNotWall(unit, b)
 	for i = 0, 0.99, 0.019 do
 		local spot = Vector(b) + (Vector(unit) - Vector(b)):normalized() * (GetDistance(unit,b)*i)
