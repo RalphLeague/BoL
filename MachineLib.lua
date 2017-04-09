@@ -2,7 +2,7 @@
 
 class 'MachineLib'
 function MachineLib:__init()
-	self.version = 707
+	self.version = 707.1
 	
 	self.lolPatch = GetGameVersion and GetGameVersion():sub(1,3) == "7.7" and 1 or 2
 	self.notPresentPatch = GetGameVersion and GetGameVersion():sub(1,3) ~= "7.6" and GetGameVersion():sub(1,3) ~= "7.7"
@@ -13,9 +13,9 @@ function MachineLib:__init()
 		self.spellHeader = self.lolPatch == 1 and 127 or 88
 		
 		--cspell2
-		self.cspell2Header = self.lolPatch == 1 and 139 or 99 --381
-		self.cspell2Pos = self.lolPatch == 1 and 13 or 24
-		self.cspell2Byte = self.lolPatch == 1 and 0x47 or 0x64
+		self.cspell2Header = self.lolPatch == 1 and 287 or 139
+		self.cspell2Pos = self.lolPatch == 1 and 6 or 13
+		self.cspell2Byte = self.lolPatch == 1 and 0x42 or 0x47 
 	
 	--Rsv--
 		self.goldHeader = self.lolPatch == 1 and 11 or 137
