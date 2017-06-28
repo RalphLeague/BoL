@@ -2,15 +2,15 @@
 
 class 'MachineLib'
 function MachineLib:__init()
-	self.version = 712
+	self.version = 713
 	
-	self.lolPatch = GetGameVersion and GetGameVersion():sub(1,4) == "7.12" and 1 or 2
-	self.notPresentPatch = GetGameVersion and GetGameVersion():sub(1,4) ~= "7.11" and GetGameVersion():sub(1,4) ~= "7.12"
+	self.lolPatch = GetGameVersion and GetGameVersion():sub(1,4) == "7.13" and 1 or 2
+	self.notPresentPatch = GetGameVersion and GetGameVersion():sub(1,4) ~= "7.12" and GetGameVersion():sub(1,4) ~= "7.13"
 	self.cn = self.notPresentPatch
 	
 	--Send--
-		self.moveHeader = self.lolPatch == 1 and 403 or 402
-		self.spellHeader = self.lolPatch == 1 and 384 or 114
+		self.moveHeader = self.lolPatch == 1 and 178 or 403
+		self.spellHeader = self.lolPatch == 1 and 371 or 384
 		
 		--cspell2
 		self.cspell2Header = self.lolPatch == 1 and 136 or 335
@@ -18,17 +18,17 @@ function MachineLib:__init()
 		self.cspell2Byte = self.lolPatch == 1 and 0xBC or 0x76 
 	
 	--Rsv--
-		self.goldHeader = self.lolPatch == 1 and 211 or 309
+		self.goldHeader = self.lolPatch == 1 and 28 or 211
 		
 		--Buy
-		self.bHeader = self.lolPatch == 1 and 97 or 0xCB
-		self.bPos = self.lolPatch == 1 and 11 or 15
-		self.botrk = self.lolPatch == 1 and 10 or 176
-		self.IE = self.lolPatch == 1 and 152 or 204
-		self.Trinity = self.lolPatch == 1 and 223 or 106
+		self.bHeader = self.lolPatch == 1 and 97 or 97
+		self.bPos = self.lolPatch == 1 and 11 or 11
+		self.botrk = self.lolPatch == 1 and 10 or 10
+		self.IE = self.lolPatch == 1 and 152 or 152
+		self.Trinity = self.lolPatch == 1 and 223 or 223
 	
 		--Recall
-		self.recallHeader = self.lolPatch == 1 and 157 or 68
+		self.recallHeader = self.lolPatch == 1 and 151 or 157
 		self.recallPos1 = self.lolPatch == 1 and 6 or 80 --id
 		self.recallPos2 = self.lolPatch == 1 and  35 or 56
 	
