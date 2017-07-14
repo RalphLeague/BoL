@@ -1,9 +1,5 @@
 TestCrashRun = true
 _G.RalphlolUtilitySuite = true
---[[
-Ralphlol's Utility Suite
-Updated 7th/12th/2016
-]]
 
 function Print(msg) print("<font color=\"#A51842\">Ralphlol's Utility Suite:  </font><font color=\"#FFFFFF\">"..msg) end
 local sEnemies = GetEnemyHeroes()
@@ -12,7 +8,7 @@ local MainMenu = scriptConfig("Ralphlol's Utility Suite","UtilitySuite")
 
 function OnLoad()
     local ToUpdate = {}
-    ToUpdate.Version = 1.28
+    ToUpdate.Version = 1.29
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/RalphLeague/BoL/master/RalphlolUtilitySuite.version"
@@ -157,7 +153,7 @@ function OnProcessSpell(unit, spell)
 	end
 
 	
-	if unit.type == 'obj_AI_Turret' and spell.target.isMe then
+	if unit.type == 'AITurret' and spell.target.isMe then
 		towerTarget = os.clock()
 		--print(spell.windUpTime)
 	end
@@ -419,7 +415,7 @@ function missCS:Tick()
 	end
 end
 function missCS:OnCreateObj(object)
-	if object ~= nil and object.type == "obj_AI_Minion" and not object.dead then
+	if object ~= nil and object.type == "AIMinion" and not object.dead then
 		if self.minionArray.allyMinion[object.name] ~= nil or self.minionArray.ennemyMinion[object.name] ~= nil or self.minionArray.allyMinion[object.name] ~= nil then return end
 		if string.find(object.name,self.minionArray.team_ally) then 
 			self.minionArray.allyMinion[object.name] = object
@@ -431,7 +427,7 @@ function missCS:OnCreateObj(object)
 	end
 end
 function missCS:OnDeleteObj(object)
-	if object ~= nil and object.type == "obj_AI_Minion" and object.name ~= nil then
+	if object ~= nil and object.type == "AIMinion" and object.name ~= nil then
 		if self.minionArray.jungleCreeps[object.name] ~= nil then 
 			self.minionArray.jungleCreeps[object.name] = nil
 		elseif self.minionArray.ennemyMinion[object.name] ~= nil then 
