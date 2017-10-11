@@ -2,15 +2,15 @@
 
 class 'MachineLib'
 function MachineLib:__init()
-	self.version = 719
+	self.version = 720
 	
-	self.lolPatch = GetGameVersion and GetGameVersion():sub(1,4) == "7.19" and 1 or 2
-	self.notPresentPatch = GetGameVersion and GetGameVersion():sub(1,4) ~= "7.18" and GetGameVersion():sub(1,4) ~= "7.19"
+	self.lolPatch = GetGameVersion and GetGameVersion():sub(1,4) == "7.20" and 1 or 2
+	self.notPresentPatch = GetGameVersion and GetGameVersion():sub(1,4) ~= "7.19" and GetGameVersion():sub(1,4) ~= "7.20"
 	self.cn = self.notPresentPatch
 	
 	--Send--
-		self.moveHeader = self.lolPatch == 1 and 89 or 181
-		self.spellHeader = self.lolPatch == 1 and 250 or 421
+		self.moveHeader = self.lolPatch == 1 and 222 or 89
+		self.spellHeader = self.lolPatch == 1 and 107 or 250
 		
 		--cspell2
 		self.cspell2Header = self.lolPatch == 1 and 136 or 136
@@ -54,7 +54,7 @@ end
 
 function MachineLib:SkinChange(what)
 	if self.cn or not SetSkin then return end
-
+	
 	if self.lolPatch == 1 then
 		local skinPB = what - 2
 		SetSkin(myHero, skinPB)
