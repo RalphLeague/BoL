@@ -2,7 +2,7 @@
 
 class 'MachineLib'
 function MachineLib:__init()
-	self.version = 722
+	self.version = 722.1
 	
 	self.lolPatch = GetGameVersion and GetGameVersion():sub(1,4) == "7.22" and 1 or 2
 	self.notPresentPatch = GetGameVersion and GetGameVersion():sub(1,4) ~= "7.21" and GetGameVersion():sub(1,4) ~= "7.22"
@@ -53,13 +53,13 @@ function MachineLib:__init()
 end
 
 function MachineLib:SkinChange(what)
-	do return end
 	if self.cn or not SetSkin then return end
 	
 	if self.lolPatch == 1 then
 		local skinPB = what - 2
 		SetSkin(myHero, skinPB)
 	else
+		do return end
 		local skinPB = what - 2
 		SetSkin(myHero, skinPB)
 	end
