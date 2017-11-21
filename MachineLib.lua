@@ -2,15 +2,15 @@
 
 class 'MachineLib'
 function MachineLib:__init()
-	self.version = 722.1
+	self.version = 723
 	
-	self.lolPatch = GetGameVersion and GetGameVersion():sub(1,4) == "7.22" and 1 or 2
-	self.notPresentPatch = GetGameVersion and GetGameVersion():sub(1,4) ~= "7.21" and GetGameVersion():sub(1,4) ~= "7.22"
+	self.lolPatch = GetGameVersion and GetGameVersion():sub(1,4) == "7.23" and 1 or 2
+	self.notPresentPatch = GetGameVersion and GetGameVersion():sub(1,4) ~= "7.22" and GetGameVersion():sub(1,4) ~= "7.23"
 	self.cn = self.notPresentPatch
 	
 	--Send--
-		self.moveHeader = self.lolPatch == 1 and 325 or 108
-		self.spellHeader = self.lolPatch == 1 and 143 or 189
+		self.moveHeader = self.lolPatch == 1 and 466 or 325
+		self.spellHeader = self.lolPatch == 1 and 237 or 143
 		
 		--cspell2
 		self.cspell2Header = self.lolPatch == 1 and 136 or 136
@@ -18,7 +18,7 @@ function MachineLib:__init()
 		self.cspell2Byte = self.lolPatch == 1 and 0xBC or 0x76 
 	
 	--Rsv--
-		self.goldHeader = self.lolPatch == 1 and 297 or 32
+		self.goldHeader = self.lolPatch == 1 and 128 or 297
 		
 		--Buy
 		self.bHeader = self.lolPatch == 1 and 370 or 0x158
